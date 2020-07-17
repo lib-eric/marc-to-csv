@@ -333,9 +333,41 @@ def get_dc_subject_lcsh(record):
 # REPEAT REPEAT
 def get_contributor_committeemember(record):
     dc_contributor_committeeMember = ''
+    committee_member_list = []
 
     # Get SUBJECT MESH
     if record['700'] != None:
+        dict_record = record.as_dict()
+
+        for fields in dict_record['fields']:
+            dict_field = dict(fields)
+
+            # print(dict_field['700']['subfields'])
+
+            if dict_field.get('700') != None:
+                # field_700 = dict(dict_field.get('700'))
+                # field_700 = dict_field.get('700')
+                for subfield in dict_field.get('700').get('subfields'):
+                    print(subfield['a'])
+
+                    if 'committee member' in subfield['e']:
+                        # committee_member_list.append(subfield['a'])
+                        pass
+
+                # print(field_700)
+
+                # # if field_700.get('e') != None:
+                # #     print(field_700.get('e'))
+                
+                # if field_700.get('subfields') != None:
+                #     print(field_700.get('subfields'))
+
+                # print(dict_field['700'])
+
+
+        # TODO : Combine List 'committee_member_list' with double pipe ('||')
+        print(committee_member_list, sep='||')
+
         record.get_fields()
         dc_contributor_committeeMember = record['700']['a']
     
