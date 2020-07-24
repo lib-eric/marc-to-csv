@@ -1,6 +1,11 @@
+# MARC processing/extraction
 import pymarc
 from pymarc import MARCReader
 from pymarc import marc8_to_unicode
+# CSV creation and writing
+import os
+from pathlib import Path
+import csv
 
 
 def extract_fields(record=None):
@@ -23,14 +28,13 @@ def extract_fields(record=None):
     dissertation_fields['dc.subject.nalt'] = get_dc_subject_nalt(record)
     dissertation_fields['dc.subject.lcsh'] = get_dc_subject_lcsh(record)
     dissertation_fields['dc.contributor.committeeMember'] = get_contributor_committeemember(record)
-    # dissertation_fields['dc.contributor.advisor'] = get_filename(record)
-    # dissertation_fields['thesis.degree.discipline'] = get_filename(record)
-    # dissertation_fields['handle'] = get_filename(record)
+    dissertation_fields['dc.contributor.advisor'] = get_contributor_advisor(record)
+    dissertation_fields['handle'] = get_handle(record)
 
     # Write Record to CSV
-    # TODO
+    dictionary_to_csv(dissertation_fields)
     
-    return dissertation_fields
+    # return dissertation_fields
 
 # MARC: 001
 # Add ".pdf" to end
@@ -47,7 +51,8 @@ def get_filename(record):
     return filename
 
 
-# TODO
+# TODO:
+# 1) What is wanting out of this field? "Disseration", YEAR
 # MARC: 099
 def get_dc_subject_classification(record):
     dc_subject_classification = ''
@@ -167,7 +172,7 @@ def get_dc_format_extent(record):
     return dc_format_extent
 
 
-# TODO
+# TODO: Doesn't seem right; only 1 record with 500, not relevant
 # MARC: 500
 def get_dc_description(record):
     dc_description = ''
@@ -179,6 +184,7 @@ def get_dc_description(record):
     print("dc_description: {description}".format(description=dc_description))
     
     return dc_description
+
 
 
 # MARC: 520
@@ -194,6 +200,7 @@ def get_dc_description_abstract(record):
     return dc_description_abstract
 
 
+
 # MARC: 502$b
 # Will be either Doctoral or Masters
 def get_thesis_degree_type(record):
@@ -203,23 +210,26 @@ def get_thesis_degree_type(record):
     if record['502'] != None:
         field_502a = record['502']['b']
 
-        # "{type part} in {department}" -- grabs the {type part}
-        type_part_extract = field_502a[0:field_502a.find(" in ")]
+        if " in " in field_502a:
+            # "{type part} in {department}" -- grabs the {type part}
+            type_part_extract = field_502a[0:field_502a.find(" in ")]
 
-        lower = type_part_extract.lower()
+            lower = type_part_extract.lower()
 
-        # Doctorial/Ph.D
-        if lower in ["ph. d", "ph. d.", "ph.d.", "ph d"]:
-            thesis_degree_type = "Doctorial"
-        # Master
-        elif lower in ["master", "masters"]:
-            thesis_degree_type = "Masters"
+            # Doctorial/Ph.D
+            if lower in ["ph. d", "ph. d.", "ph.d.", "ph d"]:
+                thesis_degree_type = "Doctorial"
+            # Master
+            elif lower in ["master", "masters"]:
+                thesis_degree_type = "Masters"
 
     print("thesis_degree_type: {degree_type}".format(degree_type=thesis_degree_type))
     
     return thesis_degree_type
 
 
+
+# TODO: LEVEL same as TYPE? Abbreviation versus spelled out?
 # MARC: 502$b
 # Will be either Doctoral or Masters
 def get_thesis_degree_level(record):
@@ -229,21 +239,23 @@ def get_thesis_degree_level(record):
     if record['502'] != None:
         field_502a = record['502']['b']
 
-        # "{type part} in {department}" -- grabs the {type part}
-        type_part_extract = field_502a[0:field_502a.find(" in ")]
+        if " in " in field_502a:
+            # "{type part} in {department}" -- grabs the {type part}
+            type_part_extract = field_502a[0:field_502a.find(" in ")]
 
-        lower = type_part_extract.lower()
+            lower = type_part_extract.lower()
 
-        # Doctorial/Ph.D
-        if lower in ["ph. d", "ph. d.", "ph.d.", "ph d"]:
-            thesis_degree_level = "Doctorial"
-        # Master
-        elif lower in ["master", "masters"]:
-            thesis_degree_level = "Masters"
+            # Doctorial/Ph.D
+            if lower in ["ph. d", "ph. d.", "ph.d.", "ph d"]:
+                thesis_degree_level = "Doctorial"
+            # Master
+            elif lower in ["master", "masters"]:
+                thesis_degree_level = "Masters"
 
     print("thesis_degree_level: {degree_level}".format(degree_level=thesis_degree_level))
     
     return thesis_degree_level
+
 
 
 # MARC: 502$b
@@ -255,8 +267,9 @@ def get_thesis_degree_discipline(record):
     if record['502'] != None:
         field_502a = record['502']['b']
 
-        # "{type part} in {department}" -- grabs the {department} to end
-        thesis_degree_discipline = field_502a[field_502a.find(" in ")+4:]
+        if " in " in field_502a:
+            # "{type part} in {department}" -- grabs the {department} to end
+            thesis_degree_discipline = field_502a[field_502a.find(" in ")+4:]
     
 
     print("thesis_degree_discipline: {degree_discipline}".format(degree_discipline=thesis_degree_discipline))
@@ -264,130 +277,198 @@ def get_thesis_degree_discipline(record):
     return thesis_degree_discipline
 
 
-# TODO
+
 # MARC: 667
 # REPEAT REPEAT
 def get_dc_subject(record):
+    # Default variables
     dc_subject = ''
+    ls_667 = []
+    ls_subject = []
 
-    # Get SUBJECT
+    # Check if there is 667 field in record, if so get all and put into list
     if record['667'] != None:
-        dc_subject = record['667']
+        ls_667 = record.get_fields('667')
     
+    # Loop through the 667 fields and grab
+    for subject in ls_667:
+        # If last character is '.' remove it
+        if subject[-1] == '.':
+            formatted_subject = subject[0:-1].strip()
+        ls_subject.append(formatted_subject)
 
-    print("dc_subject: {subject}".format(subject=dc_subject))
+
+    # Join together SUBJECT with double pipe (||)
+    if len(ls_subject) > 0:
+        dc_subject = '||'.join(ls_subject)
 
     return dc_subject
 
 
-# TODO
+
 # MARC: 668
 # REPEAT REPEAT
 def get_dc_subject_mesh(record):
+    # Default variables
     dc_subject_mesh = ''
+    ls_668 = []
+    ls_subject_mesh = []
 
-    # Get SUBJECT MESH
+    # Check if there is 668 field in record, if so get all and put into list
     if record['668'] != None:
-        dc_subject_mesh = record['668']
+        ls_668 = record.get_fields('668')
     
+    # Loop through the 668 fields and grab
+    for mesh in ls_668:
+        # If last character is '.' remove it
+        if mesh[-1] == '.':
+            formatted_mesh = mesh[0:-1].strip()
+        ls_subject_mesh.append(formatted_mesh)
 
-    print("dc_subject_mesh: {subject_mesh}".format(subject_mesh=dc_subject_mesh))
+
+    # Join together SUBJECT_MESH with double pipe (||)
+    if len(ls_subject_mesh) > 0:
+        dc_subject_mesh = '||'.join(ls_subject_mesh)
 
     return dc_subject_mesh
 
 
-# TODO
+
 # MARC: 669
 # REPEAT REPEAT
 def get_dc_subject_nalt(record):
+    # Default variables
     dc_subject_nalt = ''
+    ls_669 = []
+    ls_subject_nalt = []
 
-    # Get SUBJECT NALT
+    # Check if there is 669 field in record, if so get all and put into list
     if record['669'] != None:
-        dc_subject_nalt = record['669']
+        ls_669 = record.get_fields('669')
     
+    # Loop through the 669 fields and grab
+    for nalt in ls_669:
+        # If last character is '.' remove it
+        if nalt[-1] == '.':
+            formatted_nalt = nalt[0:-1].strip()
+        ls_subject_nalt.append(formatted_nalt)
 
-    print("dc_subject_nalt: {subject_nalt}".format(subject_nalt=dc_subject_nalt))
+
+    # Join together SUBJECT_NALT with double pipe (||)
+    if len(ls_subject_nalt) > 0:
+        dc_subject_nalt = '||'.join(ls_subject_nalt)
 
     return dc_subject_nalt
 
 
-# TODO
+
 # MARC: 690
 # REPEAT REPEAT
 def get_dc_subject_lcsh(record):
+    # Default variables
     dc_subject_lcsh = ''
+    ls_690 = []
+    ls_subject_lcsh = []
 
-    # Get SUBJECT LCSH
+    # Check if there is 690 field in record, if so get all and put into list
     if record['690'] != None:
-        dc_subject_lcsh = record['690']
+        ls_690 = record.get_fields('690')
     
+    # Loop through the 690 fields and grab
+    for lcsh in ls_690:
+        # If last character is '.' remove it
+        if lcsh[-1] == '.':
+            formatted_lcsh = lcsh[0:-1].strip()
+        ls_subject_lcsh.append(formatted_lcsh)
 
-    print("dc_subject_lcsh: {subject_lcsh}".format(subject_lcsh=dc_subject_lcsh))
+
+    # Join together SUBJECT_LCSH with double pipe (||)
+    if len(ls_subject_lcsh) > 0:
+        dc_subject_lcsh = '||'.join(ls_subject_lcsh)
 
     return dc_subject_lcsh
 
 
-# TODO
+
 # MARC: 700$a
 # REPEAT REPEAT
 def get_contributor_committeemember(record):
+    # Default variables
     dc_contributor_committeeMember = ''
-    committee_member_list = []
+    ls_700 = []
+    ls_committee_member = []
 
-    # Get SUBJECT MESH
+    # Check if there is 700 field in record, if so get all and put into list
     if record['700'] != None:
-        dict_record = record.as_dict()
-
-        for fields in dict_record['fields']:
-            dict_field = dict(fields)
-
-            # print(dict_field['700']['subfields'])
-
-            if dict_field.get('700') != None:
-                # field_700 = dict(dict_field.get('700'))
-                # field_700 = dict_field.get('700')
-                for subfield in dict_field.get('700').get('subfields'):
-                    print(subfield['a'])
-
-                    if 'committee member' in subfield['e']:
-                        # committee_member_list.append(subfield['a'])
-                        pass
-
-                # print(field_700)
-
-                # # if field_700.get('e') != None:
-                # #     print(field_700.get('e'))
-                
-                # if field_700.get('subfields') != None:
-                #     print(field_700.get('subfields'))
-
-                # print(dict_field['700'])
-
-
-        # TODO : Combine List 'committee_member_list' with double pipe ('||')
-        print(committee_member_list, sep='||')
-
-        record.get_fields()
-        dc_contributor_committeeMember = record['700']['a']
+        ls_700 = record.get_fields('700')
     
+    # Loop through the 700 fields and grab names if RELATOR TERM ($e) has 'committee member'
+    for person in ls_700:
+        if 'committee member' in person['e'].lower():
+            initial_name = person['a'].strip()
 
-    print("dc_contributor_committeeMember: {contributor_committeeMember}".format(contributor_committeeMember=dc_contributor_committeeMember))
+            # If last character is ',' remove it
+            if initial_name[-1] == ',':
+                formatted_name = initial_name[0:-1].strip()
+            ls_committee_member.append(formatted_name)
+
+
+    # Join together COMMITTEE_MEMBERS with double pipe (||) if there are multiple
+    if len(ls_committee_member) > 0:
+        dc_contributor_committeeMember = '||'.join(ls_committee_member)
 
     return dc_contributor_committeeMember
 
 
-# TODO
-# MARC: 712$a
-# def get_contributor_advisor(record):
+# TODO: "advisor" = "supervisor"?
+# MARC: 712$a --> 700?
+def get_contributor_advisor(record):
+    # Default variables
+    dc_contributor_advisor = ''
+    ls_700 = []
+    ls_advisor = []
 
-# TODO
-# MARC: 667$a
-# def get_thesis_degree_discipline(record):
+    # Check if there is 700 field in record, if so get all and put into list
+    if record['700'] != None:
+        ls_700 = record.get_fields('700')
+    
+    # Loop through the 700 fields and grab names if RELATOR TERM ($e) has 'supervisor'
+    for person in ls_700:
+        if 'supervisor' in person['e'].lower():
+            initial_name = person['a'].strip()
+
+            # If last character is ',' remove it
+            if initial_name[-1] == ',':
+                formatted_name = initial_name[0:-1].strip()
+            ls_advisor.append(formatted_name)
+
+
+    # Join together SUPERVISOR(S) with double pipe (||) if there are multiple
+    if len(ls_advisor) > 0:
+        dc_contributor_advisor = '||'.join(ls_advisor)
+
+    return dc_contributor_advisor
+
+
+
 
 # TODO
 # MARC: 856$u
-# def get_handle(record):
+def get_handle(record):
+    # Default variables
+    handle = ''
+    ls_856 = []
+
+    # Check if there is 856 field in record, if so get all and put into list
+    if record['856'] != None:
+        ls_856 = record.get_fields('856')
+    
+    # Loop through the 856 fields and grab url if HANDLE link
+    for url in ls_856:
+        if 'hdl.handle.net' in url['u']:
+            handle = url['u'].strip()
+
+    return handle
 
 
 
@@ -406,9 +487,41 @@ def process_marc(extract_from=None):
         
         # Loop through file
         for record in reader:
-            record_fields = extract_fields(record)
+            extract_fields(record)
 
             print("Record Fields Extracted.\r\n")
+
+
+# TODO
+# Write contents to CSV file
+def dictionary_to_csv(dict_data=None, provided_csv=None):
+    if not provided_csv:
+        csv_file = 'csv_export.csv'
+    else:
+        csv_file = provided_csv
+    
+
+    # TODO: Logic for checking an existing CSV file for:
+    # 1) File already exists
+    # 2) File has same headings, else create new one and change name
+
+
+    if not os.path.isfile(csv_file):
+        with open(csv_file, mode='w', encoding='utf-8', newline='') as csvfile:
+            field_names = dict_data.keys()
+            writer = csv.DictWriter(csvfile, fieldnames=field_names, delimiter=',', quotechar='"', quoting=csv.QUOTE_ALL)
+
+            # Write to csv file HEADERS
+            writer.writeheader()
+
+    with open(csv_file, mode='a', encoding='utf-8', newline='') as csvfile:
+        field_names = dict_data.keys()
+        writer = csv.DictWriter(csvfile, fieldnames=field_names, delimiter=',', quotechar='"', quoting=csv.QUOTE_ALL)
+
+        writer.writerow(dict_data)
+
+
+        
 
 
 
