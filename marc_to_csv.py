@@ -478,8 +478,13 @@ def get_handle(record):
 
 #################################################
 def process_marc(extract_from=None):
+    # Check if the path is surrounded by quotes (default in Windows "Copy Path" option)
     if extract_from:
-        print("passed")
+        if extract_from[0]=='"' and extract_from[-1]=='"':
+            # remove first and last quote
+            extract_from = extract_from[1:-1]
+        # Convert the string to a Path
+        extract_from = Path(extract_from)
 
     # Open File
     with open(extract_from, 'rb') as mf:
@@ -523,7 +528,7 @@ def dictionary_to_csv(dict_data=None, provided_csv=None):
 
         
 
-
-
-
-process_marc("C:/temp/Python -- MARC to CSV/resource files/records--VoyagerSU_utf8--20test.bib")
+# Get INPUT from user for {path to file}
+input_file = input("Input the path and filename with extension to a Binary MARC file (*.bib, *.dat):")
+# Run
+process_marc(input_file)
