@@ -606,7 +606,7 @@ def get_identifier_other(record):
 
     # Check if there is 001 field in record
     if record['001'] != None:
-        id = record['001']
+        id = record['001'].data
         dc_identifier_other = str(id).strip()
 
     return dc_identifier_other
