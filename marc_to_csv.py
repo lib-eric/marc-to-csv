@@ -8,6 +8,61 @@ from pathlib import Path
 import csv
 
 
+# Start
+def process_marc(extract_from=None, save_name=None):
+    # Check if the path is surrounded by quotes (default in Windows "Copy Path" option)
+    if extract_from:
+        if extract_from[0]=='"' and extract_from[-1]=='"':
+            # remove first and last quote
+            extract_from = extract_from[1:-1]
+        # Convert the string to a Path
+        extract_from = Path(extract_from)
+
+    # Open File
+    with open(extract_from, 'rb') as mf:
+        reader = pymarc.MARCReader(mf, to_unicode=True, force_utf8=True)
+        
+        # Loop through file
+        for record in reader:
+            dict_csv_fields = {}
+
+            dict_csv_fields = extract_fields(record)
+
+            dictionary_to_csv(dict_data=dict_csv_fields, output_name=save_name)
+
+
+
+# Write contents to CSV file
+def dictionary_to_csv(dict_data=None, output_name=None):
+    # Assign CSV output name
+    if not output_name:
+        csv_file = 'csv_export.csv'
+    else:
+        # Ensure '.csv' is appended to the filename
+        if not output_name[-4:] == '.csv':
+            csv_file = output_name + '.csv'
+        else:
+            csv_file = output_name
+    
+
+    # Check if the file already exists, if no, add in HEADERS
+    if not os.path.isfile(csv_file):
+        with open(csv_file, mode='w', encoding='utf-8', newline='') as csvfile:
+            field_names = dict_data.keys()
+            writer = csv.DictWriter(csvfile, fieldnames=field_names, delimiter=',', quotechar='"', quoting=csv.QUOTE_ALL)
+
+            # Write to csv file HEADERS
+            writer.writeheader()
+
+    # Append/add new row of data to file
+    with open(csv_file, mode='a', encoding='utf-8', newline='') as csvfile:
+        field_names = dict_data.keys()
+        writer = csv.DictWriter(csvfile, fieldnames=field_names, delimiter=',', quotechar='"', quoting=csv.QUOTE_ALL)
+
+        writer.writerow(dict_data)
+
+
+# Store record fields in a Dictionary while processing
 def extract_fields(record=None):
     dissertation_fields = {}
 
@@ -30,6 +85,7 @@ def extract_fields(record=None):
     dissertation_fields['dc.contributor.committeeMember'] = get_contributor_committeemember(record)
     dissertation_fields['dc.contributor.advisor'] = get_contributor_advisor(record)
     dissertation_fields['handle'] = get_handle(record)
+    dissertation_fields['dc.identifier.other'] = get_identifier_other(record)
     
     return dissertation_fields
 
@@ -44,8 +100,6 @@ def get_filename(record):
     if record['001'] != None:
         # FILENAME standard is to use the id = 001 and append '.pdf' as the filename
         filename = '{id}.pdf'.format(id=str(record['001'].data).strip())
-    
-    print("filename: {file_name}".format(file_name=filename))
     
     return filename
 
@@ -72,9 +126,6 @@ def get_dc_subject_classification(record):
         # Some records have 'Disseration' split weirdly; cleanup
         if "Disser- tation" in dc_subject_classification:
             dc_subject_classification = dc_subject_classification.replace('Disser- tation', 'Dissertation')
-
-    
-    print("dc_subject_classification: {subject_class}".format(subject_class=dc_subject_classification))
     
     return dc_subject_classification
 
@@ -113,7 +164,7 @@ def get_dc_creator(record):
 # MARC: 245$a$b
 # Remove punctuation at end, including /
 def get_dc_title(record):
-    # Defaults
+    # Default variables
     title_a = ''
     title_b = ''
     dc_title = ''
@@ -135,9 +186,8 @@ def get_dc_title(record):
             while title_b[-1] in ['.','/']:
                 title_b = title_b[0:-1].strip()
     
-    dc_title = title_a + title_b
-    
-    print("dc_title: {title}".format(title=dc_title))
+    # Combine together the two
+    dc_title = title_a + ' ' + title_b
     
     return dc_title
 
@@ -146,6 +196,7 @@ def get_dc_title(record):
 # MARC: 246$a
 # Remove punctuation at end, including /
 def get_dc_title_alternative(record):
+    # Default variables
     dc_title_alternative = ''
 
     # Get TITLE ALTERNATIVE
@@ -157,8 +208,6 @@ def get_dc_title_alternative(record):
         while dc_title_alternative[-1] in ['.','/']:
             dc_title_alternative = dc_title_alternative[0:-1].strip()
     
-    print("dc_title_alternative: {title_alt}".format(title_alt=dc_title_alternative))
-    
     return dc_title_alternative
 
 
@@ -166,6 +215,7 @@ def get_dc_title_alternative(record):
 # MARC: 260$c
 # Remove punctuation
 def get_dc_date_issued(record):
+    # Default variables
     dc_date_issued = ''
 
     # Get DATE ISSUED - Check 260 first
@@ -185,14 +235,13 @@ def get_dc_date_issued(record):
         while dc_date_issued[-1] in ['.','/']:
             dc_date_issued = dc_date_issued[0:-1].strip()
     
-    print("dc_date_issued: {date_issued}".format(date_issued=dc_date_issued))
-    
     return dc_date_issued
 
 
 
 # MARC: 300$a
 def get_dc_format_extent(record):
+    # Default variables
     dc_format_extent = ''
 
     # Get FORMAT EXTENT
@@ -208,14 +257,13 @@ def get_dc_format_extent(record):
         if ' :' in dc_format_extent:
             dc_format_extent = dc_format_extent.replace(' :', '')
     
-    print("dc_format_extent: {format_extent}".format(format_extent=dc_format_extent))
-    
     return dc_format_extent
 
 
 
 # MARC: 500$a
 def get_dc_description(record):
+    # Default variables
     dc_description = ''
 
     # Get DESCRIPTION
@@ -223,21 +271,18 @@ def get_dc_description(record):
         dc_description = record['500']['a']
         dc_description = dc_description.strip()
     
-    print("dc_description: {description}".format(description=dc_description))
-    
     return dc_description
 
 
 
 # MARC: 520
 def get_dc_description_abstract(record):
+    # Default variables
     dc_description_abstract = ''
 
     # Get DESCRIPTION ABSTRACT
     if record['520'] != None:
         dc_description_abstract = record['520']['a']
-    
-    print("dc_description_abstract: {description_abstract}".format(description_abstract=dc_description_abstract))
     
     return dc_description_abstract
 
@@ -246,6 +291,7 @@ def get_dc_description_abstract(record):
 # MARC: 502$b
 # Will be either Doctoral|Masters|Bachelors in/of [field name]
 def get_thesis_degree_name(record):
+    # Default variables
     thesis_degree_name = ''
 
     # Get DEGREE TYPE
@@ -257,8 +303,6 @@ def get_thesis_degree_name(record):
             field_502a = field_502a[0:-1]
         
         thesis_degree_name = field_502a
-
-    print("thesis_degree_name: {degree_name}".format(degree_name=thesis_degree_name))
     
     return thesis_degree_name
 
@@ -267,6 +311,7 @@ def get_thesis_degree_name(record):
 # MARC: 502$b
 # Will be Doctoral, Masters, or Bachelor
 def get_thesis_degree_level(record):
+    # Default variables
     thesis_degree_level = ''
 
     # Get DEGREE LEVEL
@@ -288,9 +333,6 @@ def get_thesis_degree_level(record):
             # Bachelor
             elif lower in ['bachelor']:
                 thesis_degree_level = 'Bachelor'
-
-
-    print("thesis_degree_level: {degree_level}".format(degree_level=thesis_degree_level))
     
     return thesis_degree_level
 
@@ -299,6 +341,7 @@ def get_thesis_degree_level(record):
 # MARC: 502$b
 # Name of department
 def get_thesis_degree_discipline(record):
+    # Default variables
     thesis_degree_discipline = ''
 
     # Get DEGREE DISCIPLINE
@@ -307,9 +350,6 @@ def get_thesis_degree_discipline(record):
 
         if " in " in field_502a:
             thesis_degree_discipline = field_502a[field_502a.find(" in ")+4:]
-    
-
-    print("thesis_degree_discipline: {degree_discipline}".format(degree_discipline=thesis_degree_discipline))
 
     return thesis_degree_discipline
 
@@ -495,7 +535,6 @@ def get_contributor_committeemember(record):
                     formatted_name = initial_name[0:-1].strip()
                 ls_committee_member.append(formatted_name)
 
-
     # Join together COMMITTEE_MEMBERS with double pipe (||) if there are multiple
     if len(ls_committee_member) > 0:
         dc_contributor_committeeMember = '||'.join(ls_committee_member)
@@ -528,7 +567,6 @@ def get_contributor_advisor(record):
                     formatted_name = initial_name[0:-1].strip()
                 ls_advisor.append(formatted_name)
 
-
     # Join together SUPERVISOR(S) with double pipe (||) if there are multiple
     if len(ls_advisor) > 0:
         dc_contributor_advisor = '||'.join(ls_advisor)
@@ -560,77 +598,31 @@ def get_handle(record):
 
 
 
+# MARC: 001
+# Voyager Bib... or ends up being OCLC if exporting from OCLC
+def get_identifier_other(record):
+    # Default variables
+    dc_identifier_other = ''
 
+    # Check if there is 001 field in record
+    if record['001'] != None:
+        id = record['001']
+        dc_identifier_other = str(id).strip()
+
+    return dc_identifier_other
 
 
 
 #################################################
-def process_marc(extract_from=None, save_name=None):
-    # Check if the path is surrounded by quotes (default in Windows "Copy Path" option)
-    if extract_from:
-        if extract_from[0]=='"' and extract_from[-1]=='"':
-            # remove first and last quote
-            extract_from = extract_from[1:-1]
-        # Convert the string to a Path
-        extract_from = Path(extract_from)
-
-    # Open File
-    with open(extract_from, 'rb') as mf:
-        reader = pymarc.MARCReader(mf, to_unicode=True, force_utf8=True)
-        
-        # Loop through file
-        for record in reader:
-            dict_csv_fields = {}
-
-            dict_csv_fields = extract_fields(record)
-
-            dictionary_to_csv(dict_data=dict_csv_fields, output_name=save_name)
-
-            # print("Record Fields Extracted.\r\n")
-
-
-
-# Write contents to CSV file
-def dictionary_to_csv(dict_data=None, output_name=None):
-    # Assign CSV output name
-    if not output_name:
-        csv_file = 'csv_export.csv'
-    else:
-        # Ensure '.csv' is appended to the filename
-        if not output_name[-4] == '.csv':
-            csv_file = output_name + '.csv'
-        else:
-            csv_file = output_name
-    
-
-    # Check if the file already exists, if no, add in HEADERS
-    if not os.path.isfile(csv_file):
-        with open(csv_file, mode='w', encoding='utf-8', newline='') as csvfile:
-            field_names = dict_data.keys()
-            writer = csv.DictWriter(csvfile, fieldnames=field_names, delimiter=',', quotechar='"', quoting=csv.QUOTE_ALL)
-
-            # Write to csv file HEADERS
-            writer.writeheader()
-
-
-    with open(csv_file, mode='a', encoding='utf-8', newline='') as csvfile:
-        field_names = dict_data.keys()
-        writer = csv.DictWriter(csvfile, fieldnames=field_names, delimiter=',', quotechar='"', quoting=csv.QUOTE_ALL)
-
-        writer.writerow(dict_data)
-
 
 
 
 print("Welcome to 'Marc to CSV'")
 
-
-
 # Get INPUT from user for {path to file}
 input_file = input("Input the path and filename with extension to a Binary MARC file (*.bib, *.dat):")
 # Get INPUT from user for {output file name}
 input_output_name = input("Give the output file a name (eg. output.csv):")
-
 
 # Run
 process_marc(extract_from=input_file, save_name=input_output_name)
