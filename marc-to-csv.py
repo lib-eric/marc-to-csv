@@ -105,7 +105,7 @@ def get_filename(record):
 
 
 
-# MARC: 099
+# MARC: 099$aaa
 def get_dc_subject_classification(record):
     dc_subject_classification = ''
     ls_subfields = ''
@@ -113,7 +113,7 @@ def get_dc_subject_classification(record):
     # Get SUBJECT CLASSIFICATION
     if record['099'] != None:
 
-        # dc_subject_classification = str(record['099']).strip()
+        # populate list of subfields
         ls_subfields = record['099'].get_subfields('a')
 
         if len(ls_subfields) > 0:
@@ -145,13 +145,14 @@ def get_dc_creator(record):
     
     # Loop through the 100 fields
     for person in ls_100:
-        initial_name = person['a'].strip()
+        if person['a'] != None:
+            initial_name = person['a'].strip()
 
-        # If last character is ',' remove it
-        if initial_name[-1] == ',' or '.':
-            formatted_name = initial_name[0:-1].strip()
+            # If last character is ',' remove it
+            if initial_name[-1] == ',' or '.':
+                formatted_name = initial_name[0:-1].strip()
 
-        ls_creator.append(formatted_name)
+            ls_creator.append(formatted_name)
 
     # Join together CREATOR(S) with double pipe (||) if there are multiple
     if len(ls_creator) > 0:
@@ -171,16 +172,19 @@ def get_dc_title(record):
 
     # Get TITLE$a
     if record['245'] != None:
-        title_a = record['245']['a']
-        title_a = title_a.strip()
+        field_245 = record['245']
 
-        # Remove trailing [spaces, '.', '/']
-        while title_a[-1] in ['.','/']:
-            title_a = title_a[0:-1].strip()
+        if field_245['a'] != None:
+            title_a = field_245['a']
+            title_a = title_a.strip()
+
+            # Remove trailing [spaces, '.', '/']
+            while title_a[-1] in ['.','/']:
+                title_a = title_a[0:-1].strip()
         
         # Get TITLE$b
-        if record['245']['b'] != None:
-            title_b = str(record['245']['b']).strip()
+        if field_245['b'] != None:
+            title_b = str(field_245['b']).strip()
 
             # Remove trailing [spaces, '.', '/']
             while title_b[-1] in ['.','/']:
@@ -201,12 +205,15 @@ def get_dc_title_alternative(record):
 
     # Get TITLE ALTERNATIVE
     if record['246'] != None:
-        dc_title_alternative = record['246']['a']
-        dc_title_alternative = dc_title_alternative.strip()
+        field_246 = record['246']
 
-        # Remove trailing [spaces, '.', '/']
-        while dc_title_alternative[-1] in ['.','/']:
-            dc_title_alternative = dc_title_alternative[0:-1].strip()
+        if field_246['a'] != None:
+            dc_title_alternative = field_246['a']
+            dc_title_alternative = dc_title_alternative.strip()
+
+            # Remove trailing [spaces, '.', '/']
+            while dc_title_alternative[-1] in ['.','/']:
+                dc_title_alternative = dc_title_alternative[0:-1].strip()
     
     return dc_title_alternative
 
@@ -220,20 +227,26 @@ def get_dc_date_issued(record):
 
     # Get DATE ISSUED - Check 260 first
     if record['260'] != None:
-        dc_date_issued = record['260']['c']
-        dc_date_issued = dc_date_issued.strip()
+        field_260 = record['260']
 
-        # Remove trailing [spaces, '.', '/']
-        while dc_date_issued[-1] in ['.','/']:
-            dc_date_issued = dc_date_issued[0:-1].strip()
+        if field_260['c'] != None:
+            dc_date_issued = field_260['c']
+            dc_date_issued = dc_date_issued.strip()
+
+            # Remove trailing [spaces, '.', '/']
+            while dc_date_issued[-1] in ['.','/']:
+                dc_date_issued = dc_date_issued[0:-1].strip()
     
     # Get DATE ISSUED - Check 260 first
     if record['264'] != None:
-        dc_date_issued = record['264']['c']
+        field_264 = record['264']
 
-        # Remove trailing [spaces, '.', '/']
-        while dc_date_issued[-1] in ['.','/']:
-            dc_date_issued = dc_date_issued[0:-1].strip()
+        if field_264['c'] != None:
+            dc_date_issued = field_264['c']
+
+            # Remove trailing [spaces, '.', '/']
+            while dc_date_issued[-1] in ['.','/']:
+                dc_date_issued = dc_date_issued[0:-1].strip()
     
     return dc_date_issued
 
@@ -246,16 +259,19 @@ def get_dc_format_extent(record):
 
     # Get FORMAT EXTENT
     if record['300'] != None:
-        dc_format_extent = record['300']['a']
-        dc_format_extent = dc_format_extent.strip()
+        field_300 = record['300']
 
-        # Remove trailing [spaces, '.', '/']
-        while dc_format_extent[-1] in ['.','/']:
-            dc_format_extent = dc_format_extent[0:-1].strip()
-        
-        # Remove ' :'
-        if ' :' in dc_format_extent:
-            dc_format_extent = dc_format_extent.replace(' :', '')
+        if field_300['a'] != None:
+            dc_format_extent = field_300['a']
+            dc_format_extent = dc_format_extent.strip()
+
+            # Remove trailing [spaces, '.', '/']
+            while dc_format_extent[-1] in ['.','/']:
+                dc_format_extent = dc_format_extent[0:-1].strip()
+            
+            # Remove ' :'
+            if ' :' in dc_format_extent:
+                dc_format_extent = dc_format_extent.replace(' :', '')
     
     return dc_format_extent
 
@@ -268,21 +284,27 @@ def get_dc_description(record):
 
     # Get DESCRIPTION
     if record['500'] != None:
-        dc_description = record['500']['a']
-        dc_description = dc_description.strip()
+        field_500 = record['500']
+
+        if field_500['a'] != None:
+            dc_description = field_500['a']
+            dc_description = dc_description.strip()
     
     return dc_description
 
 
 
-# MARC: 520
+# MARC: 520$a
 def get_dc_description_abstract(record):
     # Default variables
     dc_description_abstract = ''
 
     # Get DESCRIPTION ABSTRACT
     if record['520'] != None:
-        dc_description_abstract = record['520']['a']
+        field_520 = record['520']
+
+        if field_520['a'] != None:
+            dc_description_abstract = field_520['a']
     
     return dc_description_abstract
 
@@ -296,13 +318,16 @@ def get_thesis_degree_name(record):
 
     # Get DEGREE TYPE
     if record['502'] != None:
-        field_502a = record['502']['b']
-        field_502a = field_502a.strip()
+        field_502 = record['502']
 
-        if field_502a[-1] == '.':
-            field_502a = field_502a[0:-1]
-        
-        thesis_degree_name = field_502a
+        if field_502['b'] != None:
+            field_502b = field_502['b']
+            field_502b = field_502b.strip()
+
+            if field_502b[-1] == '.':
+                field_502b = field_502b[0:-1]
+            
+            thesis_degree_name = field_502b
     
     return thesis_degree_name
 
@@ -316,23 +341,26 @@ def get_thesis_degree_level(record):
 
     # Get DEGREE LEVEL
     if record['502'] != None:
-        field_502a = record['502']['b']
+        field_502 = record['502']
 
-        if " in " in field_502a:
-            # "{type part} in {department}" -- grabs the {type part}
-            type_part_extract = field_502a[0:field_502a.find(" in ")]
+        if field_502['b'] != None:
+            field_502b = field_502['b']
 
-            lower = type_part_extract.lower()
+            if " in " in field_502b:
+                # "{type part} in {department}" -- grabs the {type part}
+                type_part_extract = field_502b[0:field_502b.find(" in ")]
 
-            # Doctorial/Ph.D
-            if lower in ["ph. d", "ph. d.", "ph.d.", "ph d"]:
-                thesis_degree_level = 'Doctorial'
-            # Master
-            elif lower in ['master']:
-                thesis_degree_level = 'Master'
-            # Bachelor
-            elif lower in ['bachelor']:
-                thesis_degree_level = 'Bachelor'
+                lower = type_part_extract.lower()
+
+                # Doctorial/Ph.D
+                if lower in ["ph. d", "ph. d.", "ph.d.", "ph d"]:
+                    thesis_degree_level = 'Doctorial'
+                # Master
+                elif lower in ['master']:
+                    thesis_degree_level = 'Master'
+                # Bachelor
+                elif lower in ['bachelor']:
+                    thesis_degree_level = 'Bachelor'
     
     return thesis_degree_level
 
@@ -346,10 +374,12 @@ def get_thesis_degree_discipline(record):
 
     # Get DEGREE DISCIPLINE
     if record['502'] != None:
-        field_502a = record['502']['b']
+        field_502 = record['502']
+        if field_502['b'] != None:
+            field_502b = field_502['b']
 
-        if " in " in field_502a:
-            thesis_degree_discipline = field_502a[field_502a.find(" in ")+4:]
+            if " in " in field_502b:
+                thesis_degree_discipline = field_502b[field_502b.find(" in ")+4:]
 
     return thesis_degree_discipline
 
@@ -528,12 +558,13 @@ def get_contributor_committeemember(record):
         if person['e'] != None:
             lower_case_relator = str(person['e']).lower()
             if 'committee member' in lower_case_relator:
-                initial_name = person['a'].strip()
+                if person['a'] != None:
+                    initial_name = person['a'].strip()
 
-                # If last character is ',' remove it
-                if initial_name[-1] == ',':
-                    formatted_name = initial_name[0:-1].strip()
-                ls_committee_member.append(formatted_name)
+                    # If last character is ',' remove it
+                    if initial_name[-1] == ',':
+                        formatted_name = initial_name[0:-1].strip()
+                        ls_committee_member.append(formatted_name)
 
     # Join together COMMITTEE_MEMBERS with double pipe (||) if there are multiple
     if len(ls_committee_member) > 0:
@@ -560,12 +591,13 @@ def get_contributor_advisor(record):
         if person['e'] != None:
             lower_case_relator = person['e'].lower()
             if 'advisor' in lower_case_relator or 'supervisor' in lower_case_relator:
-                initial_name = person['a'].strip()
+                if person['a'] != None:
+                    initial_name = person['a'].strip()
 
-                # If last character is ',' remove it
-                if initial_name[-1] == ',':
-                    formatted_name = initial_name[0:-1].strip()
-                ls_advisor.append(formatted_name)
+                    # If last character is ',' remove it
+                    if initial_name[-1] == ',':
+                        formatted_name = initial_name[0:-1].strip()
+                        ls_advisor.append(formatted_name)
 
     # Join together SUPERVISOR(S) with double pipe (||) if there are multiple
     if len(ls_advisor) > 0:
@@ -587,12 +619,13 @@ def get_handle(record):
     
     # Loop through the 856 fields and grab url if HANDLE link
     for url in ls_856:
-        if 'hdl.handle.net' in url['u']:
-            handle = url['u'].strip()
-            
-            # Uppercase 'dissertation'
-            if 'dissertations' or 'Dissertations' in handle:
-                handle = handle.replace('Dissertations', 'DISSERTATIONS')
+        if url['u'] != None:
+            if 'hdl.handle.net' in url['u']:
+                handle = url['u'].strip()
+                
+                # Uppercase 'dissertation'
+                if 'dissertations' or 'Dissertations' in handle:
+                    handle = handle.replace('Dissertations', 'DISSERTATIONS')
 
     return handle
 
