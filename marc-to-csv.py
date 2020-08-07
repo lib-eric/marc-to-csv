@@ -6,6 +6,8 @@ from pymarc import marc8_to_unicode
 import os
 from pathlib import Path
 import csv
+# REGEX for formatting/clean-up
+import re
 
 
 # Start
@@ -69,19 +71,19 @@ def extract_fields(record=None):
     dissertation_fields['filename'] = get_filename(record)
     dissertation_fields['dc.subject.classification'] = get_dc_subject_classification(record)
     dissertation_fields['dc.creator'] = get_dc_creator(record)
-    dissertation_fields['dc.title'] = get_dc_title(record)
-    dissertation_fields['dc.title.alternative'] = get_dc_title_alternative(record)
+    dissertation_fields['dc.title[en]'] = get_dc_title(record)
+    dissertation_fields['dc.title.alternative[en]'] = get_dc_title_alternative(record)
     dissertation_fields['dc.date.issued'] = get_dc_date_issued(record)
-    dissertation_fields['dc.format.extent'] = get_dc_format_extent(record)
-    dissertation_fields['dc.description'] = get_dc_description(record)
-    dissertation_fields['dc.description.abstract'] = get_dc_description_abstract(record)
-    dissertation_fields['thesis.degree.name'] = get_thesis_degree_name(record)
-    dissertation_fields['thesis.degree.level'] = get_thesis_degree_level(record)
-    dissertation_fields['thesis.degree.discipline'] = get_thesis_degree_discipline(record)
-    dissertation_fields['dc.subject'] = get_dc_subject(record)
-    dissertation_fields['dc.subject.mesh'] = get_dc_subject_mesh(record)
-    dissertation_fields['dc.subject.nalt'] = get_dc_subject_nalt(record)
-    dissertation_fields['dc.subject.lcsh'] = get_dc_subject_lcsh(record)
+    dissertation_fields['dc.format.extent[en]'] = get_dc_format_extent(record)
+    dissertation_fields['dc.description[en]'] = get_dc_description(record)
+    dissertation_fields['dc.description.abstract[en]'] = get_dc_description_abstract(record)
+    dissertation_fields['thesis.degree.name[en]'] = get_thesis_degree_name(record)
+    dissertation_fields['thesis.degree.level[en]'] = get_thesis_degree_level(record)
+    dissertation_fields['thesis.degree.discipline[en]'] = get_thesis_degree_discipline(record)
+    dissertation_fields['dc.subject[en]'] = get_dc_subject(record)
+    dissertation_fields['dc.subject.mesh[en]'] = get_dc_subject_mesh(record)
+    dissertation_fields['dc.subject.nalt[en]'] = get_dc_subject_nalt(record)
+    dissertation_fields['dc.subject.lcsh[en]'] = get_dc_subject_lcsh(record)
     dissertation_fields['dc.contributor.committeeMember'] = get_contributor_committeemember(record)
     dissertation_fields['dc.contributor.advisor'] = get_contributor_advisor(record)
     dissertation_fields['handle'] = get_handle(record)
@@ -151,6 +153,13 @@ def get_dc_creator(record):
             # If last character is ',' remove it
             if initial_name[-1] == ',' or '.':
                 formatted_name = initial_name[0:-1].strip()
+
+            # Re-add punctuation for ending initial
+            re_pattern = r'(\s[[A-Z])$'
+            # last_is_initial = re.search(re_pattern, formatted_name, re.M)
+            last_is_initial = re.search(re_pattern, formatted_name)
+            if last_is_initial:
+                formatted_name = formatted_name + '.'
 
             ls_creator.append(formatted_name)
 
