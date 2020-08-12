@@ -635,6 +635,12 @@ def get_handle(record):
                 # Uppercase 'dissertation'
                 if 'dissertations' or 'Dissertations' in handle:
                     handle = handle.replace('Dissertations', 'DISSERTATIONS')
+                
+                # Remove Handle prefixing
+                if "http://hdl.handle.net/" in handle:
+                    handle = handle.replace("http://hdl.handle.net/", "")
+                if "https://hdl.handle.net/" in handle: 
+                    handle = handle.replace("https://hdl.handle.net/", "")
 
     return handle
 
