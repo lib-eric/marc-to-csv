@@ -87,7 +87,7 @@ def extract_fields(record=None):
     dissertation_fields['dc.contributor.committeeMember'] = get_contributor_committeemember(record)
     dissertation_fields['dc.contributor.advisor'] = get_contributor_advisor(record)
     dissertation_fields['handle'] = get_handle(record)
-    dissertation_fields['dc.identifier.other'] = get_identifier_other(record)
+    dissertation_fields['dc.identifier.oclc'] = get_identifier_oclc(record)
     
     return dissertation_fields
 
@@ -156,7 +156,7 @@ def get_dc_creator(record):
 
             # Re-add punctuation for ending initial
             re_pattern = r'(\s[[A-Z])$'
-            # last_is_initial = re.search(re_pattern, formatted_name, re.M)
+            # Run search to see if match found
             last_is_initial = re.search(re_pattern, formatted_name)
             if last_is_initial:
                 formatted_name = formatted_name + '.'
@@ -646,18 +646,42 @@ def get_handle(record):
 
 
 
-# MARC: 001
-# Voyager Bib... or ends up being OCLC if exporting from OCLC
-def get_identifier_other(record):
+# MARC: 035
+# OCLC number
+def get_identifier_oclc(record):
     # Default variables
-    dc_identifier_other = ''
+    # Repeat Reapeat. Take first in record
+    # Clean up prefixes from number
+    dc_identifier_oclc = ''
+    oclc_fields = []
 
-    # Check if there is 001 field in record
-    if record['001'] != None:
-        id = record['001'].data
-        dc_identifier_other = str(id).strip()
+    # Search for '035' fields in record
+    for field in ['035']:
+        oclc_fields = record.get_fields(field)
 
-    return dc_identifier_other
+        # Check that there is at least one of the fields
+        if len(oclc_fields) > 0:
+            for oclc_number in oclc_fields:
+
+                # Check that subfield 'a' exists
+                if oclc_number['a'] != None:
+                    raw_oclc = ''
+                    oclc_numbers = ''
+
+                    raw_oclc = oclc_number['a'].strip()
+
+                    # Clean up raw oclc to get just the numbers
+                    re_pattern = r'\D'
+                    # Find all non digit characters, replace with nothing (delete)
+                    oclc_numbers = re.sub(re_pattern, '', raw_oclc)
+
+                    # Check that there is a number string, if so take it
+                    if oclc_numbers != '':
+                        dc_identifier_oclc = oclc_numbers
+                        break
+
+
+    return dc_identifier_oclc
 
 
 
