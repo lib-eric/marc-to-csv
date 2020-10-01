@@ -40,7 +40,7 @@ def process_marc(extract_from=None, save_name=None):
 # Write contents to CSV file
 def dictionary_to_csv(dict_data=None, output_name=None):
     # Assign CSV output name
-    if output_name is not None:
+    if output_name is None:
     # if not output_name:
         csv_file = 'csv_export.csv'
     else:
