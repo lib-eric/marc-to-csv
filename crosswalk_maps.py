@@ -13,9 +13,6 @@ import re
 import pymarc
 from pymarc import MARCReader
 from pymarc import marc8_to_unicode
-# Spreadsheet/Dataframe
-import pandas as pd
-
 
 # CSV creation and writing
 import os
