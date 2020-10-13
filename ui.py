@@ -187,38 +187,18 @@ class App:
         selected_option = self.var_rb_option.get()
 
         # HACK: Dynamically execute method based on ls_mapping_options to run
-        for mapping_text, mapping_to_run in self.ls_mapping_options:
-            if mapping_to_run == selected_option:
-                exec(
-                    """{mapping_to_run}(extract_from=r"{input_path}", save_name="{output_path}")
-                    """.format(mapping_to_run=mapping_to_run, input_path=input_path, output_path=output_path)
-                    )
-                tk.messagebox.showinfo(
-                'Complete',
-                "Mapping: '{mapping_text}' ran.".format(mapping_text=mapping_text)
+        if selected_option is not None:
+            exec(
+                """{mapping_to_run}(extract_from=r"{input_path}", save_name="{output_path}")
+                """.format(mapping_to_run=selected_option, input_path=input_path, output_path=output_path)
                 )
-                break
-            else:
-                tk.messagebox.showinfo(
-                'Error',
-                "Please select a process from the radiobox"
-                )
+            tk.messagebox.showinfo(
+            'Complete',
+            "Mapping: '{mapping_text}' ran.".format(mapping_text=selected_option)
+            )
+        else:
+            tk.messagebox.showinfo(
+            'Error',
+            "Please select a process from the radiobox"
+            )
 
-
-        # if selected_option == "dissertations":
-        #     dissertations(extract_from=input_path, save_name=output_path)
-        #     tk.messagebox.showinfo(
-        #         'Complete',
-        #         "Operation finished running."
-        #         )
-        # elif selected_option == "maps":
-        #     maps()
-        #     tk.messagebox.showinfo(
-        #         'Complete',
-        #         "Operation finished running."
-        #         )
-        # else:
-        #     tk.messagebox.showinfo(
-        #         'Error',
-        #         "Please select a process from the radiobox"
-        #         )
