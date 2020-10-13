@@ -5,6 +5,8 @@
 import os
 from pathlib import Path
 import csv
+# REGEX for formatting/clean-up
+import re
 
 # Third party libraries
 # MARC processing/extraction
@@ -155,7 +157,7 @@ def get_lcc(record):
         ls_050_subfields = list(filter(None,ls_050_subfields))
         
         # Combine the subfields for the given 050 and add to list of found
-        if len(ls_LLC) > 0:
+        if len(ls_050_subfields) > 0:
             ls_LLC.append(" ".join(ls_050_subfields))
     
     # For all of the 050 found, string together with double pipes
@@ -186,7 +188,7 @@ def get_dc_subject_classification(record):
         ls_099_subfields = list(filter(None,ls_099_subfields))
 
         # Add if results left
-        if len(ls_subject_class) > 0:
+        if len(ls_099_subfields) > 0:
             ls_subject_class.append(" ".join(ls_099_subfields))
 
     dc_subject_classification = "||".join(ls_subject_class)
@@ -218,10 +220,10 @@ def get_dc_creator(record):
         
 
         # Remove empty results
-        ls_creator = list(filter(None,ls_creator))
+        ls_100_110_subfields = list(filter(None,ls_100_110_subfields))
         
         # Add if results left
-        if len(ls_creator) > 0:
+        if len(ls_100_110_subfields) > 0:
             ls_creator.append(" ".join(ls_100_110_subfields))
     
     dc_creator = "||".join(ls_creator)
@@ -256,10 +258,10 @@ def get_dc_title(record):
             ls_245_subfields[index] = str(cleaned_subfield).strip()
 
         # Remove empty results
-        ls_titles = list(filter(None, ls_titles))
+        ls_245_subfields = list(filter(None, ls_245_subfields))
         
         # Add if results left
-        if len(ls_titles) > 0:
+        if len(ls_245_subfields) > 0:
             ls_titles.append(" ".join(ls_245_subfields))
 
     dc_title = "||".join(ls_titles)
@@ -348,10 +350,10 @@ def get_dc_date_issued(record):
             ls_260_c[index] = cleaned
 
         # Remove empty results
-        ls_date_issued = list(filter(None,ls_date_issued))
+        ls_260_c = list(filter(None,ls_260_c))
         
         # Add to list of dates
-        if len(ls_date_issued) > 0:
+        if len(ls_260_c) > 0:
             ls_date_issued.append(" ".join(ls_260_c))
 
     # Remove duplicates -- incase there are any
@@ -393,10 +395,10 @@ def get_dc_publisher(record):
             ls_264_b[index] = cleaned
         
         # Remove empty results
-        ls_publishers = list(filter(None,ls_publishers))
+        ls_264_b = list(filter(None,ls_264_b))
         
         # Add to list of publishers
-        if len(ls_publishers) > 0:
+        if len(ls_264_b) > 0:
             ls_publishers.append(" ".join(ls_264_b))
 
     # Combine 'publishers' by double pipe
@@ -427,10 +429,10 @@ def get_dc_format_extent(record):
             ls_300_abc[index] = cleaned
 
         # Remove empty results
-        ls_extents = list(filter(None,ls_300_abc))
+        ls_300_abc = list(filter(None,ls_300_abc))
         
         # Add to list of publishers
-        if len(ls_extents) > 0:
+        if len(ls_300_abc) > 0:
             ls_extents.append(" ".join(ls_300_abc))
 
     # Combine 'extent' by double pipe
@@ -459,11 +461,11 @@ def get_dc_description(record):
             ls_500_a[index] = sub_a
 
         # Remove empty results
-        ls_notes = list(filter(None,ls_notes))
+        ls_500_a = list(filter(None,ls_500_a))
 
         # Add if results left
-        if len(ls_notes) > 0:
-            ls_notes.append(" ".join(sub_a))
+        if len(ls_500_a) > 0:
+            ls_notes.append(" ".join(ls_500_a))
 
     dc_description = "||".join(ls_notes)
 
@@ -532,13 +534,13 @@ def get_dc_type(record):
             ls_655_a[index] = cleaned
         
         # Remove duplicates
-        ls_types = list(dict.fromkeys(ls_types))
+        ls_655_a = list(dict.fromkeys(ls_655_a))
         
         # Remove empty results
-        ls_types = list(filter(None,ls_types))
+        ls_655_a = list(filter(None,ls_655_a))
         
         # Add field to list
-        if len(ls_types) > 0:
+        if len(ls_655_a) > 0:
             ls_types.append(" ".join(ls_655_a))
     
     # For all of the '655' found, string together with double pipes
@@ -570,15 +572,15 @@ def get_dc_contributor(record):
         # Clean up subfields
         for index, subfield in enumerate(contributor_subfields):
             
-            cleaned = cleanup.remove_trailing_punctuation(subfield)
+            cleaned = cleanup.remove_trailing_period(subfield)
 
             contributor_subfields[index] = cleaned
 
         # Remove empty results
-        ls_contributors = list(filter(None,ls_contributors))
+        contributor_subfields = list(filter(None,contributor_subfields))
         
         # Add if results left
-        if len(ls_contributors) > 0:
+        if len(contributor_subfields) > 0:
             ls_contributors.append(" ".join(contributor_subfields))
 
     # Join together
