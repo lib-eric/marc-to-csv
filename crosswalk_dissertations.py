@@ -2,6 +2,8 @@
 import os
 from pathlib import Path
 import csv
+# REGEX for formatting/clean-up
+import re
 
 # Third party libraries
 # MARC processing/extraction
