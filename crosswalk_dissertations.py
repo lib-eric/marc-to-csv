@@ -2,8 +2,6 @@
 import os
 from pathlib import Path
 import csv
-# REGEX for formatting/clean-up
-import re
 
 # Third party libraries
 # MARC processing/extraction
@@ -15,6 +13,9 @@ from pymarc import marc8_to_unicode
 
 # Start
 def process_marc(extract_from=None, save_name=None):
+    if save_name is None or save_name == "":
+        save_name = "output_mapping_dissertations.csv"
+    
     # Check if the path is surrounded by quotes (default in Windows "Copy Path" option)
     if extract_from:
         if extract_from[0]=='"' and extract_from[-1]=='"':
