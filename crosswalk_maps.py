@@ -93,7 +93,7 @@ def extract_fields(record=None):
     dict_map_fields = {}
 
     dict_map_fields['filename'] = get_filename(record) # DONE
-    dict_map_fields['dc.lcc'] = get_lcc(record) # DONE
+    dict_map_fields['dc.subject.lcc'] = get_lcc(record) # DONE
     dict_map_fields['dc.subject.classification'] = get_dc_subject_classification(record) # DONE -None have
     dict_map_fields['dc.creator'] = get_dc_creator(record) # DONE
     dict_map_fields['dc.title[en]'] = get_dc_title(record) # DONE
