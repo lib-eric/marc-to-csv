@@ -83,4 +83,16 @@ def list_remove_empty(passed_list):
     return ls_slimmed
 
 
+# Cleanup
+# Input: str
+# Return: str -- make sure can convert to string and strip
+def str_convert_trimmed(passed_string):
+    str_trimmed = ''
+    
+    try:
+        str_trimmed = str(passed_string).strip()
+    except:
+        print("Cannot convert passed value to string.")
+
+    return str_trimmed
 
