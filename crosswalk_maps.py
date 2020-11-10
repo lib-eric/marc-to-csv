@@ -485,7 +485,7 @@ def get_dc_spacial(record):
 
         # Get the appropriate subfields depending on field.
         if spacial.tag == '255':
-            ls_fields = spacial.get_subfields('c')
+            ls_subfields = spacial.get_subfields('c')
         
         # Cleanup subfields.
         for index, subfield in enumerate(ls_subfields):
@@ -786,17 +786,17 @@ def get_dc_contributor(record):
 
         # Specify condition subfields to extract
         if contributor.tag == '700':
-            contributor_subfields = contributor.get_subfields('a','d')
+            ls_subfields = contributor.get_subfields('a','d')
         elif contributor.tag == '710':
-            contributor_subfields = contributor.get_subfields('a','b')
+            ls_subfields = contributor.get_subfields('a','b')
         
         # Cleanup -- for each subfield
-        for index, subfield in enumerate(contributor_subfields):
+        for index, subfield in enumerate(ls_subfields):
             
             cleaned = cleanup.remove_trailing_period(subfield)
             
             # Update value index
-            contributor_subfields[index] = cleaned
+            ls_subfields[index] = cleaned
 
         # Cleanup -- remove duplicates and remove empty
         ls_subfields = cleanup.list_remove_duplicates(ls_subfields)
