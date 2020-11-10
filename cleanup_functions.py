@@ -16,7 +16,7 @@ def remove_trailing_period(passed_input, keep_dotted_inital=True):
         re_pattern = r'(\s[A-Z]\.)$'
 
         # If an ending intial is not found, remove
-        if re.match(re_pattern, passed_input) is None:
+        if re.search(re_pattern, passed_input) is None:
             
             # Check if passed_input has trailing period
             if passed_input[-1] == '.':
@@ -95,4 +95,3 @@ def str_convert_trimmed(passed_string):
         print("Cannot convert passed value to string.")
 
     return str_trimmed
-
