@@ -689,3 +689,4 @@ def get_identifier_oclc(record):
 
 
     return dc_identifier_oclc
+
