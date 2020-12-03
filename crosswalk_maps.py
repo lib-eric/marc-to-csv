@@ -93,7 +93,7 @@ def extract_fields(record=None):
     dict_map_fields['dc.creator'] = get_dc_creator(record) # DONE -- keeping "dc.creator"
     dict_map_fields['dc.title'] = get_dc_title(record) # DONE -- keeping "dc.title"
     dict_map_fields['dc.coverage'] = get_dc_coverage(record) # DONE -- keeping "dc.coverage"
-    dict_map_fields['dcterms.spacial'] = get_dc_spacial(record) # 
+    dict_map_fields['dcterms.spatial'] = get_dc_spatial(record) # 
     dict_map_fields['dc.date'] = get_dc_date_issued(record) # DONE -- was "dc.date.issued"
     dict_map_fields['dc.publisher'] = get_dc_publisher(record) # DONE -- keeping "dc.publisher"
     dict_map_fields['dcterms.extent'] = get_dc_format_extent(record) # DONE -- was "dc.format.extent"
@@ -471,7 +471,7 @@ def get_dc_coverage(record):
 
 
 # MARC 255$c
-def get_dc_spacial(record):
+def get_dc_spatial(record):
     
     # Default variables.
     ls_fields = record.get_fields('255')
