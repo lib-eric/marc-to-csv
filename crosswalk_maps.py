@@ -246,7 +246,7 @@ def get_dc_subject_lcsh(record):
             if subject_lcsh.indicator2 in ['0','1']:
 
                 str_subfield = cleanup.str_convert_trimmed(subfield)
-                str_subfield = cleanup.remove_trailing_period(subfield)
+                str_subfield = cleanup.remove_trailing_period(str_subfield)
 
             ls_subfields[index] = str_subfield
 
