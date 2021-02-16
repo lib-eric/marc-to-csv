@@ -13,7 +13,7 @@ from pathlib import Path
 import csv
 
 def start():
-    extract_from = r"C:/Users/pennington66502/Desktop/Local Python/marc-to-csv/downloads/2020-11-10_Maps_export.mrc"
+    extract_from = r"./downloads/2020-11-10_Maps_export.mrc"
 
     # Check if the path is surrounded by quotes (default in Windows "Copy Path" option)
     if extract_from:
