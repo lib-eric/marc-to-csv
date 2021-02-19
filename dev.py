@@ -47,7 +47,7 @@ def get_dc_subject_str(record):
     str_results = ""
 
     dict_fields_subs = {'600':['a','b','v','x','y','z'], '610':['a','b','v','x','y','z'], '650':['a','b','v','x','y','z']}
-    dict_field_first_indicators = {'600': ['none','0','1','3'], '610': ['none','0','1','3'],'650': ['none','0','1','3']}
+    dict_field_first_indicators = {'600': ['none','0','1','3'], '610': ['none','0','1','2'],'650': ['none','0','1','2']}
     dict_field_second_indicators = {'600': ['0','1'], '610': ['0','1'], '650': ['0','1']}
     dict_subfield_cleanup = {'600': ['remove trailing period'], '610': ['remove trailing period'], '650': ['remove trailing period']}
     subfield_delimiter = '--'
@@ -95,11 +95,12 @@ def process_field(record=None,
     for f in ls_fields:
         ls_subfields = []
 
-        # Filter on indicator
-        exclude = False
+        # Filter on indicator.
+        # Default for inidicators.
         indicator1 = ''
         indicator2 = ''
 
+        # If indicator is blank or missing, standardize to "none".
         if f.indicator1 is None or f.indicator1 == ' ':
             print(str(f.tag) + " ind1 is NONE.")
             indicator1 = 'none'
@@ -113,30 +114,16 @@ def process_field(record=None,
             indicator2 = f.indicator2
         
         if indicator1 not in dict_field_first_indicators.get(f.tag) or indicator2 not in dict_field_second_indicators.get(f.tag):
-            # Skip and try next field.
+            # Stop processing this field, Skip and continue to next.
             continue
         
-        # Continue working on field assuming it has approved indicators.
+        # Continue working on field, assuming it has approved indicators.
         ls_sub_letters = dict_fields_subs.get(f.tag)
         print("sub letters are: " + str(ls_sub_letters))
-        
 
-
-
-        # # Only add subfield if there is a value.
-        # for s in ls_sub_letters:
-        #     print(s)
-            
-        #     # If there is a value, add it to the list.
-        #     if f.get_subfields(s):
-        #         ls_subfields.extend(f.get_subfields(s))
+        # Only add subfield if there is a value.
         ls_subfields = f.get_subfields(*ls_sub_letters)
 
-
-
-
-
-        
         # Cleanup -- for each subfield.
         for index, subfield in enumerate(ls_subfields):
             str_subfield = ""
@@ -150,6 +137,7 @@ def process_field(record=None,
                 if c == "remove trailing period":
                     str_subfield = cleanup.remove_trailing_period(str_subfield)
             
+            # Update the value in the list.
             ls_subfields[index] = str_subfield
         
         # Cleanup -- remove duplicates and remove any empty.
