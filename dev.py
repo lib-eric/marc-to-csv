@@ -38,6 +38,7 @@ def start():
 def extract_fields(record):
     dict_map_fields = {}
 
+    dict_map_fields['dc.identifier'] = get_dc_identifier_str(record)
     dict_map_fields['dc.subject'] = get_dc_subject_str(record)
 
     return dict_map_fields
@@ -61,6 +62,27 @@ def get_dc_subject_str(record):
         subfield_delimiter=subfield_delimiter,
         field_delimiter=field_delimiter)
 
+
+    # print(str_results)
+    return str_results
+
+def get_dc_identifier_str(record):
+    str_results = ""
+
+    dict_fields_subs = {'001':[]}
+    dict_field_first_indicators = {'001': ['none']}
+    dict_field_second_indicators = {'001': ['none']}
+    dict_subfield_cleanup = {'001': []}
+    subfield_delimiter = ' '
+    field_delimiter = '||'
+
+    str_results = process_field(record=record,
+        dict_fields_subs=dict_fields_subs,
+        dict_field_first_indicators=dict_field_first_indicators,
+        dict_field_second_indicators=dict_field_second_indicators,
+        dict_subfield_cleanup=dict_subfield_cleanup,
+        subfield_delimiter=subfield_delimiter,
+        field_delimiter=field_delimiter)
 
     # print(str_results)
     return str_results
@@ -93,6 +115,25 @@ def process_field(record=None,
     
     # Get and process subfield data.
     for f in ls_fields:
+        
+        # Determine if requested field is a data field. Will be processed differently.
+        field_data = ''
+        try:
+            field_data = f.data
+        except:
+            pass
+        
+        if field_data != '':
+            print("There is a data field.")
+            
+            # Assign the return string to be the field's data string.
+            return_str = field_data
+            
+            # Data field is finished processing. Return value and don't continue.
+            return return_str
+
+        # If not a data field, continue process.
+
         ls_subfields = []
 
         # Filter on indicator.
@@ -101,17 +142,27 @@ def process_field(record=None,
         indicator2 = ''
 
         # If indicator is blank or missing, standardize to "none".
-        if f.indicator1 is None or f.indicator1 == ' ':
-            print(str(f.tag) + " ind1 is NONE.")
-            indicator1 = 'none'
-        else:
+        try:
             indicator1 = f.indicator1
 
-        if f.indicator2 is None or f.indicator2 == ' ':
-            print(str(f.tag) + " ind2 is NONE.")
-            indicator2 = 'none'
-        else:
+            if indicator1 is None or indicator1 == ' ':
+                print(str(f.tag) + " ind1 is NONE.")
+                indicator1 = 'none'
+            else:
+                indicator1 = f.indicator1
+        except:
+            indicator1 = 'none'
+        
+        try:
             indicator2 = f.indicator2
+
+            if indicator2 is None or indicator2 == ' ':
+                print(str(f.tag) + " ind2 is NONE.")
+                indicator2 = 'none'
+            else:
+                indicator2 = f.indicator2
+        except:
+            indicator2 = 'none'
         
         if indicator1 not in dict_field_first_indicators.get(f.tag) or indicator2 not in dict_field_second_indicators.get(f.tag):
             # Stop processing this field, Skip and continue to next.
@@ -121,12 +172,12 @@ def process_field(record=None,
         ls_sub_letters = dict_fields_subs.get(f.tag)
         print("sub letters are: " + str(ls_sub_letters))
 
-        # Only add subfield if there is a value.
+        # Get subfields.
         ls_subfields = f.get_subfields(*ls_sub_letters)
 
         # Cleanup -- for each subfield.
         for index, subfield in enumerate(ls_subfields):
-            str_subfield = ""
+            str_subfield = ''
 
             # Default cleanup, converting to string and trimming white space.
             str_subfield = cleanup.str_convert_trimmed(subfield)
@@ -148,7 +199,7 @@ def process_field(record=None,
         # Tie together subfields with subfield delimiter.
         if len(ls_subfields) > 0:
             ls_results.append(str(subfield_delimiter).join(ls_subfields))
-        
+
     # Cleanup -- remove duplicates and remove empty.
     ls_results = cleanup.list_remove_duplicates(ls_results)
     ls_results = cleanup.list_remove_empty(ls_results)
