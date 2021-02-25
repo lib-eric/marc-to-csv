@@ -291,7 +291,7 @@ def get_dc_title(record):
         ls_subfields = []
 
         # Specify condition subfields to extract
-        ls_subfields = title.get_subfields('a','b','c')
+        ls_subfields = title.get_subfields('a','b')
 
         # Cleanup -- for each subfield
         for index, subfield in enumerate(ls_subfields):
