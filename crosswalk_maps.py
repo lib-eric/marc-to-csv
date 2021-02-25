@@ -88,8 +88,7 @@ def extract_fields(record=None):
     dict_map_fields = {}
 
     dict_map_fields['filename'] = get_filename(record) # DONE -- 001
-    dict_map_fields['dcterms.lcc'] = get_lcc(record) # DONE -- was "dc.subject.lcc"
-    dict_map_fields['dcterms.lcsh'] = get_dc_subject_lcsh(record) # DONE -- was "dc.subject.lcsh"
+    dict_map_fields['dc.subject'] = get_dc_subject(record) # Replacement for "dcterms.lcc" and "dcterms.lcsh"
     dict_map_fields['dc.creator'] = get_dc_creator(record) # DONE -- keeping "dc.creator"
     dict_map_fields['dc.title'] = get_dc_title(record) # DONE -- keeping "dc.title"
     dict_map_fields['dc.coverage'] = get_dc_coverage(record) # DONE -- keeping "dc.coverage"
@@ -126,52 +125,54 @@ def get_filename(record):
 
     return str_filename
 
-
-# MARC: 050$ab
-# Add a space between the subfields
+# MARC: 600,610,650,651
+# Add '--' between fields
 # REPEATABLE REPEATABLE
-def get_lcc(record):
+def get_dc_subject(record):
     
     # Default variables
-    ls_fields = record.get_fields('050','090')
-    ls_lcc = []
-    dc_lcc = ""
+    ls_fields = record.get_fields('600','610','650','651')
+    dc_subject = ''
+    ls_subject = []
 
     # Loop through each description field and get their subfields
-    for lcc in ls_fields:
+    for subject in ls_fields:
 
         ls_subfields = []
 
         # Specify condition subfields to extract
-        ls_subfields = lcc.get_subfields('a','b')
+        ls_subfields = subject.get_subfields('a','b','v','x','y','z')
 
         # Cleanup -- for each subfield
         for index, subfield in enumerate(ls_subfields):
-            
             str_subfield = ""
-            str_subfield = cleanup.str_convert_trimmed(subfield)
-            
-            # Update value index
+
+            if subject.indicator2 in ['0','1']:
+
+                str_subfield = cleanup.str_convert_trimmed(subfield)
+                str_subfield = cleanup.remove_trailing_period(str_subfield)
+
             ls_subfields[index] = str_subfield
-        
+
+
         # Cleanup -- remove duplicates and remove empty
         ls_subfields = cleanup.list_remove_duplicates(ls_subfields)
         ls_subfields = cleanup.list_remove_empty(ls_subfields)
-        
+
         # Add if results left
         # Tie together subfields with field delimiter
         if len(ls_subfields) > 0:
-            ls_lcc.append(" ".join(ls_subfields))
-    
+            ls_subject.append("--".join(ls_subfields))
+
     # Cleanup -- remove duplicates and remove empty
-    ls_lcc = cleanup.list_remove_duplicates(ls_lcc)
-    ls_lcc = cleanup.list_remove_empty(ls_lcc)
+    ls_subject = cleanup.list_remove_duplicates(ls_subject)
+    ls_subject = cleanup.list_remove_empty(ls_subject)
 
     # Tie together with field delimiter
-    if len(ls_lcc) > 0:
-        dc_lcc = "||".join(ls_lcc)
+    if len(ls_subject) > 0:
+        dc_subject = "||".join(ls_subject)
     
-    return dc_lcc
+    return dc_subject
 
 
 # MARC: 099$aaa
@@ -220,55 +221,6 @@ def get_dc_subject_classification(record):
         dc_subject_classification = "||".join(ls_subject_class)
     
     return dc_subject_classification
-
-
-# MARC: 600|610|650; ind2: 0-1
-# REPEAT REPEAT
-def get_dc_subject_lcsh(record):
-    
-    # Default variables
-    ls_fields = record.get_fields('600','610','650')
-    dc_subject_lcsh = ''
-    ls_subject_lcsh = []
-
-    # Loop through each description field and get their subfields
-    for subject_lcsh in ls_fields:
-
-        ls_subfields = []
-
-        # Specify condition subfields to extract
-        ls_subfields = subject_lcsh.get_subfields('a','b','v','x','y','z')
-
-        # Cleanup -- for each subfield
-        for index, subfield in enumerate(ls_subfields):
-            str_subfield = ""
-
-            if subject_lcsh.indicator2 in ['0','1']:
-
-                str_subfield = cleanup.str_convert_trimmed(subfield)
-                str_subfield = cleanup.remove_trailing_period(str_subfield)
-
-            ls_subfields[index] = str_subfield
-
-
-        # Cleanup -- remove duplicates and remove empty
-        ls_subfields = cleanup.list_remove_duplicates(ls_subfields)
-        ls_subfields = cleanup.list_remove_empty(ls_subfields)
-
-        # Add if results left
-        # Tie together subfields with field delimiter
-        if len(ls_subfields) > 0:
-            ls_subject_lcsh.append(" ".join(ls_subfields))
-
-    # Cleanup -- remove duplicates and remove empty
-    ls_subject_lcsh = cleanup.list_remove_duplicates(ls_subject_lcsh)
-    ls_subject_lcsh = cleanup.list_remove_empty(ls_subject_lcsh)
-
-    # Tie together with field delimiter
-    if len(ls_subject_lcsh) > 0:
-        dc_subject_lcsh = "||".join(ls_subject_lcsh)
-    
-    return dc_subject_lcsh
 
 
 # MARC: 100$a OR 110$ab
