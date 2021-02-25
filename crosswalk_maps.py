@@ -88,6 +88,7 @@ def extract_fields(record=None):
     dict_map_fields = {}
 
     dict_map_fields['filename'] = get_filename(record) # DONE -- 001
+    dict_map_fields['dcterms.lcc'] = get_lcc(record) # DONE -- was "dc.subject.lcc"
     dict_map_fields['dc.subject'] = get_dc_subject(record) # Replacement for "dcterms.lcc" and "dcterms.lcsh"
     dict_map_fields['dc.creator'] = get_dc_creator(record) # DONE -- keeping "dc.creator"
     dict_map_fields['dc.title'] = get_dc_title(record) # DONE -- keeping "dc.title"
@@ -124,6 +125,7 @@ def get_filename(record):
     str_filename = "||".join(ls_ctrl_number)
 
     return str_filename
+
 
 # MARC: 600,610,650,651
 # Add '--' between fields
@@ -173,6 +175,53 @@ def get_dc_subject(record):
         dc_subject = "||".join(ls_subject)
     
     return dc_subject
+
+
+# MARC: 050$ab
+# Add a space between the subfields
+# REPEATABLE REPEATABLE
+def get_lcc(record):
+    
+    # Default variables
+    ls_fields = record.get_fields('050','090')
+    ls_lcc = []
+    dc_lcc = ""
+
+    # Loop through each description field and get their subfields
+    for lcc in ls_fields:
+
+        ls_subfields = []
+
+        # Specify condition subfields to extract
+        ls_subfields = lcc.get_subfields('a','b')
+
+        # Cleanup -- for each subfield
+        for index, subfield in enumerate(ls_subfields):
+            
+            str_subfield = ""
+            str_subfield = cleanup.str_convert_trimmed(subfield)
+            
+            # Update value index
+            ls_subfields[index] = str_subfield
+        
+        # Cleanup -- remove duplicates and remove empty
+        ls_subfields = cleanup.list_remove_duplicates(ls_subfields)
+        ls_subfields = cleanup.list_remove_empty(ls_subfields)
+        
+        # Add if results left
+        # Tie together subfields with field delimiter
+        if len(ls_subfields) > 0:
+            ls_lcc.append(" ".join(ls_subfields))
+    
+    # Cleanup -- remove duplicates and remove empty
+    ls_lcc = cleanup.list_remove_duplicates(ls_lcc)
+    ls_lcc = cleanup.list_remove_empty(ls_lcc)
+
+    # Tie together with field delimiter
+    if len(ls_lcc) > 0:
+        dc_lcc = "||".join(ls_lcc)
+    
+    return dc_lcc
 
 
 # MARC: 099$aaa
@@ -542,7 +591,7 @@ def get_dc_publisher(record):
             str_subfield = ""
             str_subfield = cleanup.str_convert_trimmed(subfield)
             
-            # str_subfield = cleanup.remove_trailing_punctuation(str_subfield)
+            str_subfield = cleanup.remove_trailing_punctuation(str_subfield)
             
             # Update value index
             ls_subfields[index] = str_subfield
