@@ -671,7 +671,7 @@ def get_dc_format_extent(record):
 def get_dc_description(record):
     
     # Default variables
-    ls_fields = record.get_fields('246', '255', '500', '505', '550')
+    ls_fields = record.get_fields('246', '255', '500', '504','505', '510','520','522','530','533','534','550','563')
     ls_description = []
     dc_description = ''
 
@@ -682,11 +682,11 @@ def get_dc_description(record):
 
         # Specify condition subfields to extract
         if description.tag == '255':
-            ls_subfields = description.get_subfields('a','b')
+            ls_subfields = description.get_subfields('a','b','c')
         elif description.tag == '246':
             ls_subfields = description.get_subfields('a','b')
         else:
-            ls_subfields = description.get_subfields('a') # Gets all subfields
+            ls_subfields = description.get_subfields('a','b','c') # Gets all subfields
 
         # Cleanup -- for each subfield
         for index, subfield in enumerate(ls_subfields):
