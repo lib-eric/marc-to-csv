@@ -573,7 +573,7 @@ def get_dc_date_issued(record):
 def get_dc_publisher(record):
     
     # Default variables
-    ls_fields = record.get_fields('264')
+    ls_fields = record.get_fields('264','260')
     ls_publishers = []
     dc_publisher = ""
 
