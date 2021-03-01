@@ -787,7 +787,7 @@ def get_dc_contributor(record):
 
         # Specify condition subfields to extract
         if contributor.tag == '700':
-            ls_subfields = contributor.get_subfields('a','d')
+            ls_subfields = contributor.get_subfields('a','q','d')
         elif contributor.tag == '710':
             ls_subfields = contributor.get_subfields('a','b')
         
@@ -807,6 +807,42 @@ def get_dc_contributor(record):
         # Tie together subfields with field delimiter
         if len(ls_subfields) > 0:
             ls_contributors.append(" ".join(ls_subfields))
+        
+        # Do not want to add if the Contributor appears in the Creator.
+        # Get list of creators from the 1xx field.
+        ls_1xx = record.get_fields('100','110')
+        ls_creator = []
+        ls_c = []
+        
+        # Build list of names of creators.
+        for creator in ls_1xx:
+            ls_c = creator.get_subfields('a','b')
+            for index, c in enumerate(ls_c):
+                cleaned = cleanup.remove_trailing_period(c)
+                ls_c[index] = cleaned
+
+
+        # Cleanup -- remove duplicates and remove empty.
+        ls_c = cleanup.list_remove_duplicates(ls_c)
+        ls_c = cleanup.list_remove_empty(ls_c)
+
+        # Add if results left.
+        # Tie together subfields with field delimiter.
+        if len(ls_c) > 0:
+            ls_creator.append(" ".join(ls_c))
+        
+        skip = False
+        
+        # If the Contributor was alreayd listed as Creator, skip to next Contributor.
+        for cr in ls_creator:
+            for co in ls_contributors:
+                # If found (equals 0 or greater for index found), skip.
+                if co.find(cr) != -1:
+                    skip = True
+                    ls_contributors.remove(cr)
+        
+        if skip == True:
+            continue # Skip this Contributor and go to next.
 
     # Cleanup -- remove duplicates and remove empty
     ls_contributors = cleanup.list_remove_duplicates(ls_contributors)
