@@ -288,7 +288,7 @@ def get_dc_creator(record):
 
         # Specify condition subfields to extract
         if creator.tag == '100':
-            ls_subfields = creator.get_subfields('a')
+            ls_subfields = creator.get_subfields('a','q','d')
         elif creator.tag == '110':
             ls_subfields = creator.get_subfields('a','b')
 
