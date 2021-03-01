@@ -839,7 +839,7 @@ def get_dc_contributor(record):
                 # If found (equals 0 or greater for index found), skip.
                 if co.find(cr) != -1:
                     skip = True
-                    ls_contributors.remove(cr)
+                    ls_contributors.remove(co)
         
         if skip == True:
             continue # Skip this Contributor and go to next.
