@@ -11,17 +11,6 @@ import pymarc
 from pymarc import MARCReader
 from pymarc import marc8_to_unicode
 
-# CSV creation and writing
-import os
-from pathlib import Path
-import csv
-
-# Third party libraries
-# MARC processing/extraction
-import pymarc
-from pymarc import MARCReader
-from pymarc import marc8_to_unicode
-
 # Custom local libraries
 import cleanup_functions as cleanup
 
