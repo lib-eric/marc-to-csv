@@ -89,7 +89,7 @@ def extract_fields(record=None):
 
     dict_map_fields['filename'] = get_filename(record) # DONE -- 001
     dict_map_fields['dcterms.lcc'] = get_lcc(record) # DONE -- was "dc.subject.lcc"
-    dict_map_fields['dcterms.lcsh'] = get_dc_subject_lcsh(record) # DONE -- was "dc.subject.lcsh"
+    dict_map_fields['dc.subject'] = get_dc_subject(record) # Replacement for "dcterms.lcc" and "dcterms.lcsh"
     dict_map_fields['dc.creator'] = get_dc_creator(record) # DONE -- keeping "dc.creator"
     dict_map_fields['dc.title'] = get_dc_title(record) # DONE -- keeping "dc.title"
     dict_map_fields['dc.coverage'] = get_dc_coverage(record) # DONE -- keeping "dc.coverage"
@@ -125,6 +125,56 @@ def get_filename(record):
     str_filename = "||".join(ls_ctrl_number)
 
     return str_filename
+
+
+# MARC: 600,610,650,651
+# Add '--' between fields
+# REPEATABLE REPEATABLE
+def get_dc_subject(record):
+    
+    # Default variables
+    ls_fields = record.get_fields('600','610','650','651')
+    dc_subject = ''
+    ls_subject = []
+
+    # Loop through each description field and get their subfields
+    for subject in ls_fields:
+
+        ls_subfields = []
+
+        # Specify condition subfields to extract
+        ls_subfields = subject.get_subfields('a','b','v','x','y','z')
+
+        # Cleanup -- for each subfield
+        for index, subfield in enumerate(ls_subfields):
+            str_subfield = ""
+
+            if subject.indicator2 in ['0','1']:
+
+                str_subfield = cleanup.str_convert_trimmed(subfield)
+                str_subfield = cleanup.remove_trailing_period(str_subfield)
+
+            ls_subfields[index] = str_subfield
+
+
+        # Cleanup -- remove duplicates and remove empty
+        ls_subfields = cleanup.list_remove_duplicates(ls_subfields)
+        ls_subfields = cleanup.list_remove_empty(ls_subfields)
+
+        # Add if results left
+        # Tie together subfields with field delimiter
+        if len(ls_subfields) > 0:
+            ls_subject.append("--".join(ls_subfields))
+
+    # Cleanup -- remove duplicates and remove empty
+    ls_subject = cleanup.list_remove_duplicates(ls_subject)
+    ls_subject = cleanup.list_remove_empty(ls_subject)
+
+    # Tie together with field delimiter
+    if len(ls_subject) > 0:
+        dc_subject = "||".join(ls_subject)
+    
+    return dc_subject
 
 
 # MARC: 050$ab
@@ -222,55 +272,6 @@ def get_dc_subject_classification(record):
     return dc_subject_classification
 
 
-# MARC: 600|610|650; ind2: 0-1
-# REPEAT REPEAT
-def get_dc_subject_lcsh(record):
-    
-    # Default variables
-    ls_fields = record.get_fields('600','610','650')
-    dc_subject_lcsh = ''
-    ls_subject_lcsh = []
-
-    # Loop through each description field and get their subfields
-    for subject_lcsh in ls_fields:
-
-        ls_subfields = []
-
-        # Specify condition subfields to extract
-        ls_subfields = subject_lcsh.get_subfields('a','b','v','x','y','z')
-
-        # Cleanup -- for each subfield
-        for index, subfield in enumerate(ls_subfields):
-            str_subfield = ""
-
-            if subject_lcsh.indicator2 in ['0','1']:
-
-                str_subfield = cleanup.str_convert_trimmed(subfield)
-                str_subfield = cleanup.remove_trailing_period(str_subfield)
-
-            ls_subfields[index] = str_subfield
-
-
-        # Cleanup -- remove duplicates and remove empty
-        ls_subfields = cleanup.list_remove_duplicates(ls_subfields)
-        ls_subfields = cleanup.list_remove_empty(ls_subfields)
-
-        # Add if results left
-        # Tie together subfields with field delimiter
-        if len(ls_subfields) > 0:
-            ls_subject_lcsh.append(" ".join(ls_subfields))
-
-    # Cleanup -- remove duplicates and remove empty
-    ls_subject_lcsh = cleanup.list_remove_duplicates(ls_subject_lcsh)
-    ls_subject_lcsh = cleanup.list_remove_empty(ls_subject_lcsh)
-
-    # Tie together with field delimiter
-    if len(ls_subject_lcsh) > 0:
-        dc_subject_lcsh = "||".join(ls_subject_lcsh)
-    
-    return dc_subject_lcsh
-
-
 # MARC: 100$a OR 110$ab
 # Fields & subfields can REPEAT in record
 # 110$b REPEATABLE REPEATABLE
@@ -287,7 +288,7 @@ def get_dc_creator(record):
 
         # Specify condition subfields to extract
         if creator.tag == '100':
-            ls_subfields = creator.get_subfields('a')
+            ls_subfields = creator.get_subfields('a','q','d')
         elif creator.tag == '110':
             ls_subfields = creator.get_subfields('a','b')
 
@@ -339,7 +340,7 @@ def get_dc_title(record):
         ls_subfields = []
 
         # Specify condition subfields to extract
-        ls_subfields = title.get_subfields('a','b','c')
+        ls_subfields = title.get_subfields('a','b')
 
         # Cleanup -- for each subfield
         for index, subfield in enumerate(ls_subfields):
@@ -572,7 +573,7 @@ def get_dc_date_issued(record):
 def get_dc_publisher(record):
     
     # Default variables
-    ls_fields = record.get_fields('264')
+    ls_fields = record.get_fields('264','260')
     ls_publishers = []
     dc_publisher = ""
 
@@ -590,7 +591,7 @@ def get_dc_publisher(record):
             str_subfield = ""
             str_subfield = cleanup.str_convert_trimmed(subfield)
             
-            # str_subfield = cleanup.remove_trailing_punctuation(str_subfield)
+            str_subfield = cleanup.remove_trailing_punctuation(str_subfield)
             
             # Update value index
             ls_subfields[index] = str_subfield
@@ -670,7 +671,7 @@ def get_dc_format_extent(record):
 def get_dc_description(record):
     
     # Default variables
-    ls_fields = record.get_fields('246', '255', '500', '505', '550')
+    ls_fields = record.get_fields('246', '255', '500', '504','505', '510','520','522','530','533','534','550','563')
     ls_description = []
     dc_description = ''
 
@@ -681,11 +682,11 @@ def get_dc_description(record):
 
         # Specify condition subfields to extract
         if description.tag == '255':
-            ls_subfields = description.get_subfields('a','b')
+            ls_subfields = description.get_subfields('a','b','c')
         elif description.tag == '246':
             ls_subfields = description.get_subfields('a','b')
         else:
-            ls_subfields = description.get_subfields('a') # Gets all subfields
+            ls_subfields = description.get_subfields('a','b','c') # Gets all subfields
 
         # Cleanup -- for each subfield
         for index, subfield in enumerate(ls_subfields):
@@ -786,7 +787,7 @@ def get_dc_contributor(record):
 
         # Specify condition subfields to extract
         if contributor.tag == '700':
-            ls_subfields = contributor.get_subfields('a','d')
+            ls_subfields = contributor.get_subfields('a','q','d')
         elif contributor.tag == '710':
             ls_subfields = contributor.get_subfields('a','b')
         
@@ -806,6 +807,42 @@ def get_dc_contributor(record):
         # Tie together subfields with field delimiter
         if len(ls_subfields) > 0:
             ls_contributors.append(" ".join(ls_subfields))
+        
+        # Do not want to add if the Contributor appears in the Creator.
+        # Get list of creators from the 1xx field.
+        ls_1xx = record.get_fields('100','110')
+        ls_creator = []
+        ls_c = []
+        
+        # Build list of names of creators.
+        for creator in ls_1xx:
+            ls_c = creator.get_subfields('a','b')
+            for index, c in enumerate(ls_c):
+                cleaned = cleanup.remove_trailing_period(c)
+                ls_c[index] = cleaned
+
+
+        # Cleanup -- remove duplicates and remove empty.
+        ls_c = cleanup.list_remove_duplicates(ls_c)
+        ls_c = cleanup.list_remove_empty(ls_c)
+
+        # Add if results left.
+        # Tie together subfields with field delimiter.
+        if len(ls_c) > 0:
+            ls_creator.append(" ".join(ls_c))
+        
+        skip = False
+        
+        # If the Contributor was alreayd listed as Creator, skip to next Contributor.
+        for cr in ls_creator:
+            for co in ls_contributors:
+                # If found (equals 0 or greater for index found), skip.
+                if co.find(cr) != -1:
+                    skip = True
+                    ls_contributors.remove(co)
+        
+        if skip == True:
+            continue # Skip this Contributor and go to next.
 
     # Cleanup -- remove duplicates and remove empty
     ls_contributors = cleanup.list_remove_duplicates(ls_contributors)
