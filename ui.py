@@ -6,6 +6,7 @@ from tkinter import filedialog as tkFiledialog
 # Custom local libraries
 from crosswalk_dissertations import process_marc as dissertations
 from crosswalk_maps import process_marc as maps
+from crosswalk_scifi import process_marc as scifi
 
 
 class App:
@@ -15,7 +16,8 @@ class App:
     # Option to dynamically add mapping options for future additions.
     ls_mapping_options = [
         ("Dissertation", "dissertations"),
-        ("Maps", "maps")
+        ("Maps", "maps"),
+        ("SciFi", "scifi")
         ]
 
     def __init__(self):
