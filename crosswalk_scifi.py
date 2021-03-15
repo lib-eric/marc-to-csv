@@ -140,12 +140,20 @@ def extract_fields(record=None):
         dict_subfield_cleanup={'600': ['remove trailing period'], '648': ['remove trailing period'], '650': ['remove trailing period'], '651': ['remove trailing period'], '653': ['remove trailing period'], '655': ['remove trailing period']},
         subfield_delimiter='--',
         field_delimiter='||',)
-    # {FAST and lcgft headings}
-    dict_map_fields['dc.headings_fast'] = process_field_heading(record=record,
+    # {FAST headings}
+    dict_map_fields['dc.headings_fast'] = process_field_fast(record=record,
         dict_fields_subs={'600': ['a','b','c','v'], '648': ['a','b','c','v'],'650': ['a','b','c','v'],'651': ['a','b','c','v'],'653': ['a','b','c','v'],'655': ['a','b','c','v']},
         dict_field_first_indicators={'600': ['0','1','2','3'],'648': ['0','1','2','3'],'650': ['0','1','2','3'],'651': ['0','1','2','3'],'653': ['0','1','2','3'],'655': ['0','1','2','3']},
         dict_field_second_indicators={'600': ['0','1','2','3','4','5','6'],'648': ['0','1','2','3','4','5','6'],'650': ['0','1','2','3','4','5','6'],'651': ['0','1','2','3','4','5','6'],'653': ['0','1','2','3','4','5','6'],'655': ['0','1','2','3','4','5','6']},
         dict_subfield_cleanup={'600': ['remove trailing period'], '648': ['remove trailing period'], '650': ['remove trailing period'], '651': ['remove trailing period'], '653': ['remove trailing period'], '655': ['remove trailing period']},
+        subfield_delimiter='--',
+        field_delimiter='||',)
+    # {lcgft headings}
+    dict_map_fields['dc.headings_lcgft'] = process_field_lcgft(record=record,
+        dict_fields_subs={'655': ['a','b','c','v','x','y']},
+        dict_field_first_indicators={'655': ['0','1','2','3']},
+        dict_field_second_indicators={'655': ['0','1','2','3','4','5','6']},
+        dict_subfield_cleanup={'655': ['remove trailing period']},
         subfield_delimiter='--',
         field_delimiter='||',)
 
@@ -154,6 +162,14 @@ def extract_fields(record=None):
         dict_field_first_indicators={},
         dict_field_second_indicators={},
         dict_subfield_cleanup={'336': ['remove trailing period']},
+        subfield_delimiter=' ',
+        field_delimiter='||',)
+    
+    dict_map_fields['dc.summary'] = process_field(record=record,
+        dict_fields_subs={'520': ['a','b']},
+        dict_field_first_indicators={},
+        dict_field_second_indicators={},
+        dict_subfield_cleanup={},
         subfield_delimiter=' ',
         field_delimiter='||',)
     
@@ -269,12 +285,13 @@ def process_field(
                 str_subfield = cleanup.str_convert_trimmed(subfield)
 
                 # Run requested cleanup operations.
-                for c in dict_subfield_cleanup.get(f.tag):
-                    # Run the cleanup operations:
-                    if c == "remove trailing period":
-                        str_subfield = cleanup.remove_trailing_period(str_subfield)
-                    if c == "remove trailing punctuation":
-                        str_subfield = cleanup.remove_trailing_punctuation(str_subfield)
+                if f.tag in dict_subfield_cleanup.keys():
+                    for c in dict_subfield_cleanup.get(f.tag):
+                        # Run the cleanup operations:
+                        if c == "remove trailing period":
+                            str_subfield = cleanup.remove_trailing_period(str_subfield)
+                        if c == "remove trailing punctuation":
+                            str_subfield = cleanup.remove_trailing_punctuation(str_subfield)
                 
                 # Update the value in the list.
                 ls_subfields[index] = str_subfield
@@ -300,7 +317,7 @@ def process_field(
 
 
 # Test template.
-def process_field_heading(
+def process_field_fast(
         record=None,
         dict_fields_subs={},
         dict_field_first_indicators={},
@@ -401,7 +418,155 @@ def process_field_heading(
                 fast_lcgft = fast_lcgft[0]
                 fast_lcgft = fast_lcgft.strip()
                 fast_lcgft = fast_lcgft.lower()
-            if fast_lcgft == 'fast' or fast_lcgft == 'lcgft':
+            if fast_lcgft == 'fast':
+                pass # Pass this test and resume.
+            else:
+                continue # Continue to the next field.
+
+            # Get subfields.
+            ls_subfields = f.get_subfields(*ls_sub_letters)
+
+            # Cleanup -- for each subfield.
+            for index, subfield in enumerate(ls_subfields):
+                str_subfield = ''
+
+                # Default cleanup, converting to string and trimming white space.
+                str_subfield = cleanup.str_convert_trimmed(subfield)
+
+                # Run requested cleanup operations.
+                for c in dict_subfield_cleanup.get(f.tag):
+                    # Run the cleanup operations:
+                    if c == "remove trailing period":
+                        str_subfield = cleanup.remove_trailing_period(str_subfield)
+                    if c == "remove trailing punctuation":
+                        str_subfield = cleanup.remove_trailing_punctuation(str_subfield)
+                
+                # Update the value in the list.
+                ls_subfields[index] = str_subfield
+            
+            # Cleanup -- remove duplicates and remove any empty.
+            ls_subfields = cleanup.list_remove_duplicates(ls_subfields)
+            ls_subfields = cleanup.list_remove_empty(ls_subfields)
+
+            # Add if results left:
+            # Tie together subfields with subfield delimiter.
+            if len(ls_subfields) > 0:
+                ls_results.append(str(subfield_delimiter).join(ls_subfields))
+
+        # Cleanup -- remove duplicates and remove empty.
+        ls_results = cleanup.list_remove_duplicates(ls_results)
+        ls_results = cleanup.list_remove_empty(ls_results)
+
+        # Tie together with field delimiter.
+        if len(ls_results) > 0:
+            return_str = str(field_delimiter).join(ls_results)
+
+        return return_str
+
+
+# Test template.
+def process_field_lcgft(
+        record=None,
+        dict_fields_subs={},
+        dict_field_first_indicators={},
+        dict_field_second_indicators={},
+        dict_subfield_cleanup={},
+        subfield_delimiter=' ',
+        field_delimiter='||',
+        ):
+        
+        # Default output variable.
+        return_str = ''
+        # Get fields based on field passed as keys in dict.
+        ls_fields = []
+        # ls_results
+        ls_results = []
+
+        for k in dict_fields_subs.keys():
+
+            # Check if field is present.
+            if record.get_fields(k):
+                print("list is not empty")
+                ls_fields.extend(record.get_fields(k))
+        
+        print("fields list is: " + str(ls_fields))
+        
+        # Get and process subfield data.
+        for f in ls_fields:
+            
+            # Determine if requested field is a data field. Will be processed differently.
+            field_data = ''
+            try:
+                field_data = f.data
+            except:
+                pass
+            
+            if field_data != '':
+                print("There is a data field.")
+                
+                # Assign the return string to be the field's data string.
+                return_str = field_data
+                
+                # Data field is finished processing. Return value and don't continue.
+                return return_str
+
+            # If not a data field, continue process.
+
+            ls_subfields = []
+
+            # Filter on indicator.
+            # Default for inidicators.
+            indicator1 = ''
+            indicator2 = ''
+
+            # If indicator is blank or missing, standardize to "none".
+            try:
+                indicator1 = f.indicator1
+
+                if indicator1 is None or indicator1 == ' ':
+                    print(str(f.tag) + " ind1 is NONE.")
+                    indicator1 = 'none'
+                else:
+                    indicator1 = f.indicator1
+            except:
+                indicator1 = 'none'
+            
+            try:
+                indicator2 = f.indicator2
+
+                if indicator2 is None or indicator2 == ' ':
+                    print(str(f.tag) + " ind2 is NONE.")
+                    indicator2 = 'none'
+                else:
+                    indicator2 = f.indicator2
+            except:
+                indicator2 = 'none'
+            
+            # # Check if any of the indicators match ones to exclude.
+            try:
+                if indicator1 in dict_field_first_indicators.get(f.tag):
+                    continue
+            except:
+                pass
+
+            try:
+                if indicator2 in dict_field_second_indicators.get(f.tag):
+                    continue
+            except:
+                pass
+            
+            # Continue working on field, assuming it has approved indicators.
+            ls_sub_letters = dict_fields_subs.get(f.tag)
+            print("sub letters are: " + str(ls_sub_letters))
+
+            # Check if $2 is one of the approved.
+            fast_lcgft = ''
+            fast_lcgft = f.get_subfields('2')
+            if fast_lcgft:
+                fast_lcgft = fast_lcgft[0]
+                fast_lcgft = fast_lcgft.strip()
+                fast_lcgft = fast_lcgft.lower()
+            if fast_lcgft == 'lcgft':
                 pass # Pass this test and resume.
             else:
                 continue # Continue to the next field.
