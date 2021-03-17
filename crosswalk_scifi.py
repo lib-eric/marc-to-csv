@@ -134,18 +134,18 @@ def extract_fields(record=None):
 
     # {LC subject headings}
     dict_map_fields['dc.headings_lc'] = process_field(record=record,
-        dict_fields_subs={'600': ['a','b','c','v'], '648': ['a','b','c','v'],'650': ['a','b','c','v'],'651': ['a','b','c','v'],'653': ['a','b','c','v'],'655': ['a','b','c','v']},
-        dict_field_first_indicators={'600': ['0','1','2','3'],'648': ['0','1','2','3'],'650': ['0','1','2','3'],'651': ['0','1','2','3'],'653': ['0','1','2','3'],'655': ['0','1','2','3']},
-        dict_field_second_indicators={'600': ['1','2','3','4','5','6','7'],'648': ['1','2','3','4','5','6','7'],'650': ['1','2','3','4','5','6','7'],'651': ['1','2','3','4','5','6','7'],'653': ['1','2','3','4','5','6','7'],'655': ['1','2','3','4','5','6','7'],},
-        dict_subfield_cleanup={'600': ['remove trailing period'], '648': ['remove trailing period'], '650': ['remove trailing period'], '651': ['remove trailing period'], '653': ['remove trailing period'], '655': ['remove trailing period']},
+        dict_fields_subs={'600': ['a','b','c','v'], '648': ['a','b','c','v'],'650': ['a','b','c','v'],'651': ['a','b','c','v'],'653': ['a','b','c','v']},
+        dict_field_first_indicators={'600': ['0','1','2','3'],'648': ['0','1','2','3'],'650': ['0','1','2','3'],'651': ['0','1','2','3'],'653': ['0','1','2','3']},
+        dict_field_second_indicators={'600': ['1','2','3','4','5','6','7'],'648': ['1','2','3','4','5','6','7'],'650': ['1','2','3','4','5','6','7'],'651': ['1','2','3','4','5','6','7'],'653': ['1','2','3','4','5','6','7']},
+        dict_subfield_cleanup={'600': ['remove trailing period'], '648': ['remove trailing period'], '650': ['remove trailing period'], '651': ['remove trailing period'], '653': ['remove trailing period']},
         subfield_delimiter='--',
         field_delimiter='||',)
     # {FAST headings}
     dict_map_fields['dc.headings_fast'] = process_field_fast(record=record,
-        dict_fields_subs={'600': ['a','b','c','v'], '648': ['a','b','c','v'],'650': ['a','b','c','v'],'651': ['a','b','c','v'],'653': ['a','b','c','v'],'655': ['a','b','c','v']},
-        dict_field_first_indicators={'600': ['0','1','2','3'],'648': ['0','1','2','3'],'650': ['0','1','2','3'],'651': ['0','1','2','3'],'653': ['0','1','2','3'],'655': ['0','1','2','3']},
-        dict_field_second_indicators={'600': ['0','1','2','3','4','5','6'],'648': ['0','1','2','3','4','5','6'],'650': ['0','1','2','3','4','5','6'],'651': ['0','1','2','3','4','5','6'],'653': ['0','1','2','3','4','5','6'],'655': ['0','1','2','3','4','5','6']},
-        dict_subfield_cleanup={'600': ['remove trailing period'], '648': ['remove trailing period'], '650': ['remove trailing period'], '651': ['remove trailing period'], '653': ['remove trailing period'], '655': ['remove trailing period']},
+        dict_fields_subs={'600': ['a','b','c','v'], '648': ['a','b','c','v'],'650': ['a','b','c','v'],'651': ['a','b','c','v'],'653': ['a','b','c','v']},
+        dict_field_first_indicators={'600': ['0','1','2','3'],'648': ['0','1','2','3'],'650': ['0','1','2','3'],'651': ['0','1','2','3'],'653': ['0','1','2','3']},
+        dict_field_second_indicators={'600': ['0','1','2','3','4','5','6'],'648': ['0','1','2','3','4','5','6'],'650': ['0','1','2','3','4','5','6'],'651': ['0','1','2','3','4','5','6'],'653': ['0','1','2','3','4','5','6']},
+        dict_subfield_cleanup={'600': ['remove trailing period'], '648': ['remove trailing period'], '650': ['remove trailing period'], '651': ['remove trailing period'], '653': ['remove trailing period']},
         subfield_delimiter='--',
         field_delimiter='||',)
     # {lcgft headings}
